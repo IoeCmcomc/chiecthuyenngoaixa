@@ -59,7 +59,7 @@ def numtotext(n):
         raise Exception('Invaild type. The first parameter must be an integer or a float.')
     if int(n) == 0:
         tarr.append('không')
-    elif n < 0:
+    elif int(n) < 0:
         tarr.append('âm')
         n = abs(n)
     ns = str(n)
