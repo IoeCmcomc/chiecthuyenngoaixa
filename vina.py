@@ -102,6 +102,7 @@ def separate_tone(t, id=False, all=False):
     tones = ('', '\\', '/', '?', '~', '.')
     tone_names = ('(Placeholder)', 'GRAVE', 'ACUTE', 'HOOK ABOVE', 'TILDE', 'DOT BELOW')
     t = unicodedata.normalize('NFC', t)
+    tone = ''
     
     for i, lett in enumerate(t):
         tone = tones[0]
@@ -331,17 +332,19 @@ with PyCallGraph(output=GraphvizOutput()):
    """
    
 class Syllable:
-    initials = ('', 'b', 'ch', 'c', 'd', 'đ', 'gh', 'gi', 'g', 'h', 'kh', 'k', 'l', 'm', 'ngh', 'ng', 'nh', 'ng',
-    'n', 'ph', 'p', 'q', 'r', 's', 'th', 'tr', 't', 'v', 'x')
+    initials = ('b', 'ch', 'c', 'd', 'đ', 'gh', 'gi', 'g', 'h', 'kh', 'k', 'l', 'm', 'ngh', 'ng', 'nh', 'ng',
+    'n', 'ph', 'p', 'q', 'r', 's', 'th', 'tr', 't', 'v', 'x', '')
     vowels = ('a', 'ă', 'â', 'e', 'ê', 'i', 'o', 'ô', 'ơ', 'u', 'ư', 'y')
     diphthongs = ('ai', 'ao', 'au', 'ay', 'âu', 'ây', 'eo', 'êu', 'ia', 'iê', 'iu', 'oa', 'oe', 'oi',
-    'oo', 'ôi', 'ơi', 'ua', 'uâ', 'ue', 'uê', 'ui', 'uô', 'uơ', 'uy', 'ưa', 'ưi', 'ươ', 'ưu')
-    triphthongs = ('iêu', 'oai', 'oay', 'uay', 'uây', 'uya', 'ươi', 'ươu', 'yêu')
+    'oo', 'ôi', 'ơi', 'ua', 'uâ', 'ue', 'uê', 'ui', 'uô', 'uơ', 'uy', 'ưa', 'ưi', 'ươ', 'ưu', 'yê')
+    triphthongs = ('iêu', 'oai', 'oay', 'uay', 'uây', 'uôi', 'uya', 'ươi', 'ươu', 'yêu')
     special_triphthongs = ('uyê',)
     phthongs = special_triphthongs + triphthongs + diphthongs + vowels
-    finals = ('', 'ch', 'c', 'm', 'ng', 'nh', 'n', 'p', 't')
+    finals = ('ch', 'c', 'm', 'ng', 'nh', 'n', 'p', 't', '')
     tones = ('', '\\', '/', '?', '~', '.')
     tone_names = ('', 'GRAVE', 'ACUTE', 'HOOK ABOVE', 'TILDE', 'DOT BELOW')
+    
+    strict_mode = False
 
     
     def __init__(self, initial, phthong, final, tone=''):
@@ -355,6 +358,44 @@ class Syllable:
        
     def __str__(self):
        return self.toString()
+       
+    def __bool__(self):
+        return True
+    
+    @classmethod
+    def fromString(cls, string):
+        string = unicodedata.normalize('NFC', string).lower()
+        if ' ' in string: return
+        syll = string
+    
+        initial = phthong = final = tone = ''
+    
+        for item in cls.initials:
+            if string.startswith(item):
+                initial = item
+                string = string[len(item):]
+                break
+        
+        string, tone = separate_tone(string)
+        
+        for item in cls.phthongs:
+            if string.startswith(item):
+                phthong = item
+                string = string[len(item):]
+                break
+        else:
+            raise Exception(f"Invaild syllable: {syll}")
+        
+        for item in cls.finals:
+            if string.startswith(item):
+                final = item
+                string = string[len(item):]
+                break
+                
+        if string != '':
+            raise Exception(f"Unexpected characters '{string}' after a syllable")
+                
+        return Syllable(initial, phthong, final, tone)
        
     def toString(self, old = False):
         initial = self.initial
@@ -380,7 +421,7 @@ class Syllable:
                 else:
                     phth_list[0] = merge_tone(phth_list[0], tone)
             elif len(phthong) == 3:
-                if phthong in special_triphthongs:
+                if phthong in self.special_triphthongs:
                     phth_list[2] = merge_tone(phth_list[2], tone)
                 else:
                     phth_list[1] = merge_tone(phth_list[1], tone)
@@ -403,10 +444,6 @@ class Syllable:
                 elif len(phthong) == 3:
                     phth_list[1] = merge_tone(phth_list[1], tone)
             return ''.join(phth_list)
-
-        # if tcon in ("c", "p", "t"):
-            # if tone in ("", "\\", "?"): tone = "."
-            # elif tone == "~": tone = "/"
     
         merge_func = old_rule if old else new_rule
         return ''.join((initial, merge_func(phthong), final))
@@ -418,11 +455,11 @@ class Syllable:
     @initial.setter
     def initial(self, value):
         value = value.lower()
+        original = value
         if hasattr(self, "_initial"):
             if value == self.initial: return
         if value in self.initials:
             if hasattr(self, "_phthong"):
-                print(value)
                 if value in {'ng', 'ngh'}:
                     value = 'ngh' if (self.phthong[0] in {'e', 'ê', 'i'}) else 'ng'
                 elif value in {'c', 'k'}:
@@ -433,7 +470,10 @@ class Syllable:
                     if phthongChars[0] != 'u':
                         phthongChars[0] = 'u'
                         self.phthong = ''.join(phthongChars)
-            self._initial = value
+            if self.strict_mode and (value != original):
+                raise ValueError(f"Invaild initial consonant: {original}")
+            else:
+                self._initial = value
         else:
             raise ValueError("Invaild initial consonant: {}".format(value))
     
@@ -444,6 +484,8 @@ class Syllable:
     @phthong.setter
     def phthong(self, value):
         value = value.lower()
+        original = value
+        original_initial = self.initial
         if value in self.phthongs:
             if hasattr(self, "_initial"):
                 if self.initial in {'ng', 'ngh'}:
@@ -453,7 +495,10 @@ class Syllable:
                          self.initial = 'k'
                     elif value[0] != 'u':
                          self.initial = 'c'
-            self._phthong = value
+            if self.strict_mode and (self.initial != original_initial):
+                raise ValueError(f"Invaild phthong: {original}")
+            else:
+                self._phthong = value
         else:
             raise ValueError("Invaild phthong: {}".format(value))
 
@@ -474,34 +519,49 @@ class Syllable:
         
     @tone.setter
     def tone(self, value):
-        if value.lower() in self.tones:
+        if value in self.tones:
+            if hasattr(self, "_final"):
+                if (self.final in {'c', 'p', 't'}) and not (value in {'/', '.'}):
+                    if self.strict_mode:
+                        raise ValueError(f"Invaild tone: {value}")
+                    elif value in {'', '\\', '?'}:
+                        value = '.'
+                    elif value == '~':
+                        value = '/'
             self._tone = value
         else:
             raise ValueError("Invaild tone: {}".format(value))
 
+if __name__ == '__main__':
+    print(repr(Syllable.fromString('Kop')))
 
-a = Syllable('ng', 'iê', 'ng', '')
-print(a)
-a.initial = 'ng'
-print(a)
+    a = Syllable('ng', 'iê', 'ng', '')
+    print(a)
+    a.initial = 'ng'
+    print(a)
 
-a = Syllable('q', 'a', 'ch', '/')
-print(a)
-a.initial = 'k'
-print(a)
+    a = Syllable('q', 'a', 'ch', '/')
+    print(a)
+    a.initial = 'k'
+    print(a)
 
-a = Syllable('q', 'uô', 'c', '/')
-print(a)
-a.initial = 'c'
-print(a)
+    a = Syllable('q', 'uô', 'c', '/')
+    print(a)
+    a.initial = 'c'
+    print(a)
 
-a = Syllable('q', 'oa', '', '?')
-print(a, repr(a))
-a.initial = 'q'
-print(a, a.toString(True), repr(a))
+    a = Syllable('q', 'oa', '', '?')
+    print(a, repr(a))
+    a.initial = 'q'
+    print(a, a.toString(True), repr(a))
 
-a = Syllable('', 'ao', '', '/')
-print(a, repr(a))
+    a = Syllable('', 'ao', '', '/')
+    print(a, repr(a))
 
-a = Syllable('q', 'uy', '', '/')
-print(a, a.toString(True), repr(a))
+    a = Syllable('q', 'uy', '', '/')
+    print(a, a.toString(True), repr(a))
+
+    print(Syllable.fromString('Nguyễn'))
+    
+    print(Syllable.fromString('got'))
+   
