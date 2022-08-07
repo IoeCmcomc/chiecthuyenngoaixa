@@ -1,47 +1,99 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import annotations
+
+import unicodedata
+from abc import ABC, abstractmethod
+from functools import lru_cache
+
+from .constants import TONES, TONE_NAMES
 from .misc import normalize, separate_tone
 
-def merge_tone(lett, atone):
-    tones = ('(Placeholder)', '\\', '/', '?', '~', '.')
-    tone_names = ('', 'GRAVE', 'ACUTE', 'HOOK ABOVE', 'TILDE', 'DOT BELOW')
+class TonePlacer(ABC):
+    @staticmethod
+    @lru_cache(maxsize=160)
+    def place_to_char(char, tone) -> str:
+        name = unicodedata.name(char)
     
-    name = unicodedata.name(lett)
-    
-    for i, tone in enumerate(tones):
-        if atone == tone:
+        if (tone != '') and (tone in TONES):
             if 'WITH' in name:
                 name += ' AND '
             else:
                 name += ' WITH '
-            name += tone_names[i]
-            break
+            name += TONE_NAMES[TONES.index(tone)]
+    
+        return unicodedata.lookup(name)
+    
+    @classmethod
+    def place(cls, syllable: Syllable) -> str:
+        nucleus = syllable.nucleus
+        i = cls.placement_index(syllable)
+        return nucleus[:i] + cls.place_to_char(nucleus[i], syllable.tone) + nucleus[i+1:]
+    
+    @classmethod
+    @abstractmethod
+    def placement_index(cls, syllable: Syllable) -> int:
+        pass
+
+class NewStyleTonePlacer(TonePlacer):
+    @classmethod
+    def placement_index(cls, syllable: Syllable):
+        nucleus = syllable.nucleus
+        nucleus_len = len(nucleus)
+        if nucleus_len == 1:
+            return 0
+        elif nucleus_len == 2:
+            if nucleus in {'uy', 'uơ'}:
+                return 1
+            elif nucleus in Syllable.CLOSED_DIPHTHONGS:
+                return 0
+            else:
+                return 1
+        elif nucleus_len == 3:
+            if nucleus in Syllable.CLOSED_TRIPHTHONGS:
+                return 1
+            else:
+                return 2
+
+class OldStyleTonePlacer(NewStyleTonePlacer):
+    @classmethod
+    def placement_index(cls, syllable: Syllable):
+        if (syllable.nucleus in {'oa', 'oe', 'uy'}) and (syllable.coda == ''):
+            return 0
+        else:
+            return super().placement_index(syllable)
 
 class Syllable:
-    initials = ('b', 'ch', 'c', 'd', 'đ', 'gh', 'gi', 'g', 'h', 'kh', 'k', 'l', 'm', 'ngh', 'ng', 'nh', 'ng',
-    'n', 'ph', 'p', 'q', 'r', 's', 'th', 'tr', 't', 'v', 'x', '')
-    vowels = ('a', 'ă', 'â', 'e', 'ê', 'i', 'o', 'ô', 'ơ', 'u', 'ư', 'y')
-    diphthongs = ('ai', 'ao', 'au', 'ay', 'âu', 'ây', 'eo', 'êu', 'ia', 'iê', 'iu', 'oa', 'oe', 'oi',
-    'oo', 'ôi', 'ơi', 'ua', 'uâ', 'ue', 'uê', 'ui', 'uô', 'uơ', 'uy', 'ưa', 'ưi', 'ươ', 'ưu', 'yê')
-    triphthongs = ('iêu', 'oai', 'oay', 'uay', 'uây', 'uôi', 'uya', 'ươi', 'ươu', 'yêu')
-    special_triphthongs = ('uyê',)
-    phthongs = special_triphthongs + triphthongs + diphthongs + vowels
-    finals = ('ch', 'c', 'm', 'ng', 'nh', 'n', 'p', 't', '')
-    tones = ('', '\\', '/', '?', '~', '.')
-    tone_names = ('', 'GRAVE', 'ACUTE', 'HOOK ABOVE', 'TILDE', 'DOT BELOW')
+    ONSETS = ('b', 'ch', 'c', 'd', 'đ', 'gh', 'gi', 'g', 'h', 'kh', 'k', 'l', 'm', 'ngh', 'ng', 'nh', 'ng',
+    'n', 'ph', 'p', 'qu', 'r', 's', 'th', 'tr', 't', 'v', 'x', '')
+    MONOPHTHONGS = ('a', 'ă', 'â', 'e', 'ê', 'i', 'o', 'ô', 'ơ', 'u', 'ư', 'y')
+    # 'oo' is not a diphthong but it's denoted using two characters
+    OPEN_DIPHTHONGS = ('iê', 'oă', 'oo', 'uâ', 'uô', 'ươ', 'yê')
+    ROUNDED_DIPHTHONGS = ('oa', 'oe', 'uê')
+    CLOSED_DIPHTHONGS = ('ai', 'ao', 'au', 'ay', 'âu', 'ây', 'eo', 'êu', 'ia', 'iu', 'oi',
+    'ôi', 'ơi', 'ua', 'ui', 'uơ', 'uy', 'ưa', 'ưi', 'ưu')
+    DIPHTHONGS = OPEN_DIPHTHONGS + ROUNDED_DIPHTHONGS + CLOSED_DIPHTHONGS
+    CLOSED_TRIPHTHONGS = ('iêu', 'oai', 'oao', 'oay', 'oeo', 'uay', 'uây', 'uôi', 'uya', 'uyu', 'ươi', 'ươu', 'yêu')
+    OPEN_TRIPHTHONGS = ('uyê',)
+    TRIPHTHONGS = CLOSED_TRIPHTHONGS + OPEN_TRIPHTHONGS
+    OPEN_NUCLEI = OPEN_TRIPHTHONGS + OPEN_DIPHTHONGS
+    CLOSED_NUCLEI = CLOSED_TRIPHTHONGS + CLOSED_DIPHTHONGS
+    NUCLEI = TRIPHTHONGS + DIPHTHONGS + MONOPHTHONGS
+    CODAS = ('ch', 'c', 'm', 'ng', 'nh', 'n', 'p', 't', '')
     
-    strict_mode = False
-
+    AUTO_CORRECT = True
     
-    def __init__(self, initial, phthong, final, tone=''):
-        self.initial = initial
-        self.phthong = phthong
-        self.final = final
+    tone_placer = NewStyleTonePlacer
+    
+    def __init__(self, onset: str, nucleus: str, coda: str, tone=''):
+        self.onset = onset
+        self.nucleus = nucleus
+        self.coda = coda
         self.tone = tone
    		
     def __repr__(self):
-       return "Syllable({}, {}, {}, {})".format(self.initial, self.phthong, self.final, self.tone)
-       
+       return f"Syllable({self.onset}, {self.nucleus}, {self.coda}, {self.tone})"
+   
     def __str__(self):
        return self.toString()
        
@@ -49,155 +101,131 @@ class Syllable:
         return True
     
     @classmethod
-    def fromString(cls, string):
+    @lru_cache
+    def fromString(cls, string: str) -> Syllable:
         string = normalize(string).lower()
-        if ' ' in string: return
-        syll = string
-    
-        initial = phthong = final = tone = ''
-    
-        for item in cls.initials:
-            if string.startswith(item):
-                initial = item
-                string = string[len(item):]
-                break
+        if ' ' in string:
+            return
+        original = string
+        onset = nucleus = coda = tone = ''
         
         string, tone = separate_tone(string)
         
-        for item in cls.phthongs:
-            if string.startswith(item):
-                phthong = item
-                string = string[len(item):]
-                break
-        else:
-            raise Exception(f"Invaild syllable: {syll}")
+        onset = next(filter(string.startswith, cls.ONSETS))
+        string = string[len(onset):]
         
-        for item in cls.finals:
-            if string.startswith(item):
-                final = item
-                string = string[len(item):]
-                break
+        if onset == 'gi':
+            if (len(string) > 1) and (string[0] == 'ê'):
+                string = 'i' + string
+        try:
+            nucleus = next(filter(string.startswith, cls.NUCLEI))
+            string = string[len(nucleus):]
+        except StopIteration:
+            if onset == 'gi':
+                if string == '':
+                    nucleus = 'i'
+                else:
+                    raise Exception(f"Invaild syllable: {original}")
+        
+        coda = next(filter(string.startswith, cls.CODAS))
+        string = string[len(coda):]
                 
         if string != '':
-            raise Exception(f"Unexpected characters '{string}' after a syllable")
+            raise Exception(f"Unexpected characters '{string}' after a syllable (in '{original}'')")
                 
-        return Syllable(initial, phthong, final, tone)
+        return Syllable(onset, nucleus, coda, tone)
        
-    def toString(self, old = False):
-        initial = self.initial
-        phthong = self.phthong
-        final = self.final
+    def toString(self) -> str:
+        onset = self.onset
+        nucleus = self.nucleus
+        coda = self.coda
         tone = self.tone
         
-        high_priorites = ('ê', 'ơ')
-        phth_list = list(phthong)
-
-        def new_rule(phthong):
-            if len(phthong) == 1:
-                phth_list[0] = merge_tone(phthong, tone)
-            elif len(phthong) == 2:
-                if phthong == 'ua':
-                    if initial == 'q':
-                        phth_list[1] = merge_tone(phth_list[1], tone)
-                    else:
-                        phth_list[0] = merge_tone(phth_list[0], tone)
-                elif phthong.startswith(('u', 'o')) \
-                or phth_list[1] in {'â', 'ê', 'ô', 'ơ', 'ư'}:
-                    phth_list[1] = merge_tone(phth_list[1], tone)
-                else:
-                    phth_list[0] = merge_tone(phth_list[0], tone)
-            elif len(phthong) == 3:
-                if phthong in self.special_triphthongs:
-                    phth_list[2] = merge_tone(phth_list[2], tone)
-                else:
-                    phth_list[1] = merge_tone(phth_list[1], tone)
-            return ''.join(phth_list)
-    
-        def old_rule(phthong):
-            for x in high_priorites:
-                if x in phthong:
-                    i = phth_list.index(x)
-                    phth_list[i] = merge_tone(phth_list[i], tone)
-                    break
-            else:
-                if len(phthong) == 1:
-                    phth_list[0] = merge_tone(phth_list[0], tone)
-                elif len(phthong) == 2:
-                    if final == '':
-                        phth_list[0] = merge_tone(phth_list[0], tone)
-                    else:
-                        phth_list[1] = merge_tone(phth_list[1], tone)
-                elif len(phthong) == 3:
-                    phth_list[1] = merge_tone(phth_list[1], tone)
-            return ''.join(phth_list)
-    
-        merge_func = old_rule if old else new_rule
-        return ''.join((initial, merge_func(phthong), final))
+        if (onset == 'gi') and ((nucleus == 'i') or (nucleus[:2] == 'iê')):
+            onset = 'g'
+        
+        return ''.join((onset, self.tone_placer.place(self), coda))
 
     @property
-    def initial(self):
-        return self._initial
+    def onset(self):
+        return self._onset
 
-    @initial.setter
-    def initial(self, value):
+    @onset.setter
+    def onset(self, value):
         value = value.lower()
         original = value
-        if hasattr(self, "_initial"):
-            if value == self.initial: return
-        if value in self.initials:
-            if hasattr(self, "_phthong"):
+        if hasattr(self, "_onset"):
+            if value == self.onset: return
+        if value in self.ONSETS:
+            if hasattr(self, "_nucleus"):
                 if value in {'ng', 'ngh'}:
-                    value = 'ngh' if (self.phthong[0] in {'e', 'ê', 'i'}) else 'ng'
+                    value = 'ngh' if (self.nucleus[0] in {'e', 'ê', 'i'}) else 'ng'
                 elif value in {'c', 'k'}:
-                    value = 'k' if (self.phthong[0] in {'e', 'ê', 'i', 'y'}) else 'c'
+                    value = 'k' if (self.nucleus[0] in {'e', 'ê', 'i', 'y'}) else 'c'
                 elif value == 'q':
-                    phthongChars = list(self.phthong)
-                    print( phthongChars )
-                    if phthongChars[0] != 'u':
-                        phthongChars[0] = 'u'
-                        self.phthong = ''.join(phthongChars)
-            if self.strict_mode and (value != original):
-                raise ValueError(f"Invaild initial consonant: {original}")
+                    nucleusChars = list(self.nucleus)
+                    print(nucleusChars)
+                    if nucleusChars[0] != 'u':
+                        nucleusChars[0] = 'u'
+                        self.nucleus = ''.join(nucleusChars)
+            if not self.AUTO_CORRECT and (value != original):
+                raise ValueError(f"Invaild onset consonant: {original}")
             else:
-                self._initial = value
+                self._onset = value
         else:
-            raise ValueError("Invaild initial consonant: {}".format(value))
+            raise ValueError(f"Invaild onset: {value}")
     
     @property
-    def phthong(self):
-         return self._phthong
+    def nucleus(self):
+         return self._nucleus
         
-    @phthong.setter
-    def phthong(self, value):
+    @nucleus.setter
+    def nucleus(self, value):
         value = value.lower()
         original = value
-        original_initial = self.initial
-        if value in self.phthongs:
-            if hasattr(self, "_initial"):
-                if self.initial in {'ng', 'ngh'}:
-                    self.initial = 'ngh' if (value[0] in {'e', 'ê', 'i'}) else 'ng'
-                elif self.initial in {'c', 'k', 'q'}:
+        original_onset = self.onset
+        if value in self.NUCLEI:
+            if hasattr(self, "_onset"):
+                if self.onset in {'ng', 'ngh'}:
+                    self.onset = 'ngh' if (value[0] in {'e', 'ê', 'i'}) else 'ng'
+                elif self.onset in {'c', 'k', 'q'}:
                     if value[0] in {'e', 'ê', 'i', 'y'}:
-                         self.initial = 'k'
+                         self.onset = 'k'
                     elif value[0] != 'u':
-                         self.initial = 'c'
-            if self.strict_mode and (self.initial != original_initial):
-                raise ValueError(f"Invaild phthong: {original}")
+                         self.onset = 'c'
+            if not self.AUTO_CORRECT and (self.onset != original_onset):
+                raise ValueError(f"Invaild nucleus: {original}")
             else:
-                self._phthong = value
+                self._nucleus = value
         else:
-            raise ValueError("Invaild phthong: {}".format(value))
+            raise ValueError(f"Invaild nucleus: {value}")
 
     @property
-    def final(self):
-         return self._final
+    def coda(self):
+         return self._coda
         
-    @final.setter
-    def final(self, value):
-        if value.lower() in self.finals:
-            self._final = value
+    @coda.setter
+    def coda(self, value):
+        value = value.lower()
+        original = value
+        original_nucleus = self.nucleus
+        if value in self.CODAS:
+            if value == '':
+                if self.nucleus in self.OPEN_NUCLEI:
+                    raise ValueError(f"Open syllable (nucleus: {self.nucleus}) must have a coda")
+            elif self.nucleus in self.CLOSED_NUCLEI:
+                value = ''
+            else:
+                if self.nucleus == 'y':
+                    if value == 'ng':
+                        value = 'nh'
+                    self.nucleus = 'i'
+            if not self.AUTO_CORRECT and ((value != original) or (self.nucleus != original_nucleus)):
+                raise ValueError(f"Invaild coda: {original}")
+            else:
+                self._coda = value
         else:
-            raise ValueError("Invaild final consonant: ' {}".format(value))
+            raise ValueError(f"Invaild coda: {value}")
 
     @property
     def tone(self):
@@ -205,10 +233,10 @@ class Syllable:
         
     @tone.setter
     def tone(self, value):
-        if value in self.tones:
-            if hasattr(self, "_final"):
-                if (self.final in {'c', 'p', 't'}) and not (value in {'/', '.'}):
-                    if self.strict_mode:
+        if value in TONES:
+            if hasattr(self, "_coda"):
+                if (self.coda in {'c', 'p', 't'}) and not (value in {'/', '.'}):
+                    if not self.AUTO_CORRECT:
                         raise ValueError(f"Invaild tone: {value}")
                     elif value in {'', '\\', '?'}:
                         value = '.'
@@ -216,4 +244,4 @@ class Syllable:
                         value = '/'
             self._tone = value
         else:
-            raise ValueError("Invaild tone: {}".format(value))
+            raise ValueError(f"Invaild tone: {value}")
