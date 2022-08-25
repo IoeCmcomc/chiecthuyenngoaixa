@@ -1,4 +1,4 @@
-def numtotext(n):
+def num_to_text(n):
     digits = ('không', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín', 'mười')
     levels = ('đơn vị', 'nghìn', 'triệu')
     
