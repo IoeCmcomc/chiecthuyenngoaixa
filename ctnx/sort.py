@@ -1,25 +1,33 @@
 # -*- coding: utf-8 -*-
 
-from .constants import CHAR_ORDER_DICT
-from .misc import remove_tones
+from __future__ import annotations
 
-class visorted_key:
-    def __init__(self, t=''):
-        self.t = t
-        self.untoned = remove_tones(t)
+from .constants import CHAR_ORDER_DICT
+
+
+class ViSortKey:
+    def __init__(self, string=''):
+        self.string = string
+
     def __repr__(self):
-        return "<visort_key #{} '{}' ('{}')>".format(id(self), self.t, self.untoned)
-    def __lt__(self, other):
-        len_st, len_ot = len(self.t), len(other.t)
+        return f"<ViSortKey '{self.string}'>"
+
+    def __lt__(self, other: ViSortKey):
         d = CHAR_ORDER_DICT
-        for i in range(min(len(self.t), len(other.t))):
-            if self.t[i] != other.t[i]:
-                if self.untoned[i] == other.untoned[i]:
-                    if len_st != len_ot:
-                        return len_st < len_ot
-                if self.t[i] in d and other.t[i] in d:
-                    return d[self.t[i]] < d[other.t[i]]
+        self_str = self.string
+        other_str = other.string
+        while True:
+            if (self_str == '') or (other_str == ''):
+                return len(self_str) < len(other_str)
+            
+            self_first = self_str[0]
+            other_first = other_str[0]
+
+            if self_first != other_first:
+                if (self_first in d) and (other_first in d):
+                    return d[self_first] < d[other_first]
                 else:
-                    return self.t[i] < other.t[i]
-        else:
-            return len(self.t) < len(other.t)
+                    return self_first < other_first
+            
+            self_str = self_str[1:]
+            other_str = other_str[1:]

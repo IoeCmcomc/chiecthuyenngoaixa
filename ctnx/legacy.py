@@ -2,6 +2,7 @@
 
 import unicodedata
 from .misc import separate_tone
+from .constants import CHAR_ORDER_DICT
 
 def remove_tones(t):
     tletters_dict = {'a': 'a', 'à': 'a', 'á': 'a', 'ả': 'a', 'ã': 'a', 'ạ': 'a', 'ă': 'ă', 'ằ': 'ă', 'ắ': 'ă', 'ẳ': 'ă', 'ẵ': 'ă', 'ặ': 'ă', 'â': 'â', 'ầ': 'â', 'ấ': 'â', 'ẩ': 'â', 'ẫ': 'â', 'ậ': 'â', 'e': 'e', 'è': 'e', 'é': 'e', 'ẻ': 'e', 'ẽ': 'e', 'ẹ': 'e', 'ê': 'ê', 'ề': 'ê', 'ế': 'ê', 'ể': 'ê', 'ễ': 'ê', 'ệ': 'ê', 'i': 'i', 'ì': 'i', 'í': 'i', 'ỉ': 'i', 'ĩ': 'i', 'ị': 'i', 'o': 'o', 'ò': 'o', 'ó': 'o', 'ỏ': 'o', 'õ': 'o', 'ọ': 'o', 'ô': 'ô', 'ồ': 'ô', 'ố': 'ô', 'ổ': 'ô', 'ỗ': 'ô', 'ộ': 'ô', 'ơ': 'ơ', 'ờ': 'ơ', 'ớ': 'ơ', 'ở': 'ơ', 'ỡ': 'ơ', 'ợ': 'ơ', 'u': 'u', 'ù': 'u', 'ú': 'u', 'ủ': 'u', 'ũ': 'u', 'ụ': 'u', 'ư': 'ư', 'ừ': 'ư', 'ứ': 'ư', 'ử': 'ư', 'ữ': 'ư', 'ự': 'ư', 'y': 'y', 'ỳ': 'y', 'ý': 'y', 'ỷ': 'y', 'ỹ': 'y', 'ỵ': 'y', 'A': 'A', 'À': 'A', 'Á': 'A', 'Ả': 'A', 'Ã': 'A', 'Ạ': 'A', 'Ă': 'Ă', 'Ằ': 'Ă', 'Ắ': 'Ă', 'Ẳ': 'Ă', 'Ẵ': 'Ă', 'Ặ': 'Ă', 'Â': 'Â', 'Ầ': 'Â', 'Ấ': 'Â', 'Ẩ': 'Â', 'Ẫ': 'Â', 'Ậ': 'Â', 'E': 'E', 'È': 'E', 'É': 'E', 'Ẻ': 'E', 'Ẽ': 'E', 'Ẹ': 'E', 'Ê': 'Ê', 'Ề': 'Ê', 'Ế': 'Ê', 'Ể': 'Ê', 'Ễ': 'Ê', 'Ệ': 'Ê', 'I': 'I', 'Ì': 'I', 'Í': 'I', 'Ỉ': 'I', 'Ĩ': 'I', 'Ị': 'I', 'O': 'O', 'Ò': 'O', 'Ó': 'O', 'Ỏ': 'O', 'Õ': 'O', 'Ọ': 'O', 'Ô': 'Ô', 'Ồ': 'Ô', 'Ố': 'Ô', 'Ổ': 'Ô', 'Ỗ': 'Ô', 'Ộ': 'Ô', 'Ơ': 'Ơ', 'Ờ': 'Ơ', 'Ớ': 'Ơ', 'Ở': 'Ơ', 'Ỡ': 'Ơ', 'Ợ': 'Ơ', 'U': 'U', 'Ù': 'U', 'Ú': 'U', 'Ủ': 'U', 'Ũ': 'U', 'Ụ': 'U', 'Ư': 'Ư', 'Ừ': 'Ư', 'Ứ': 'Ư', 'Ử': 'Ư', 'Ữ': 'Ư', 'Ự': 'Ư', 'Y': 'Y', 'Ỳ': 'Y', 'Ý': 'Y', 'Ỷ': 'Y', 'Ỹ': 'Y', 'Ỵ': 'Y', b'\xcc\x81'.decode() : '', b'\xcc\x80'.decode() : '', b'\xcc\x89'.decode() : '', b'\xcc\x83'.decode() : '', b'\xcc\xa3'.decode() : ''}
@@ -162,3 +163,26 @@ def noilais(w):
         r.append(noilai_sub(w_sylls, i))
         r.append(noilai_sub(reversed_w_sylls, i))
     return r
+
+class visorted_key:
+    def __init__(self, t=''):
+        self.t = t
+        self.untoned = remove_tones(t)
+
+    def __repr__(self):
+        return "<visort_key #{} '{}' ('{}')>".format(id(self), self.t, self.untoned)
+
+    def __lt__(self, other):
+        len_st, len_ot = len(self.t), len(other.t)
+        d = CHAR_ORDER_DICT
+        for i in range(min(len(self.t), len(other.t))):
+            if self.t[i] != other.t[i]:
+                if self.untoned[i] == other.untoned[i]:
+                    if len_st != len_ot:
+                        return len_st < len_ot
+                if self.t[i] in d and other.t[i] in d:
+                    return d[self.t[i]] < d[other.t[i]]
+                else:
+                    return self.t[i] < other.t[i]
+        else:
+            return len(self.t) < len(other.t)
