@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from constants import CHAR_ORDER_DICT
-from misc import remove_tones
+from .constants import CHAR_ORDER_DICT
+from .misc import remove_tones
 
 class visorted_key:
     def __init__(self, t=''):

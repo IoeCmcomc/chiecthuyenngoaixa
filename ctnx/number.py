@@ -1,4 +1,7 @@
-def num_to_text(n):
+from typing import Union
+
+
+def num_to_text(n: Union[int, float]):
     digits = ('không', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín', 'mười')
     levels = ('đơn vị', 'nghìn', 'triệu')
     
@@ -14,7 +17,7 @@ def num_to_text(n):
             if 1 <= n2 <= 9:
                 tarr.append('linh')
             n = n2
-        if 1 <= n <= 10:
+        if 1 <= n <= 9:
             if linh:
                 tarr.append('linh')
             tarr.append(digits[n])
@@ -37,7 +40,7 @@ def num_to_text(n):
     
     tarr = []
     if not isinstance(n, (int, float)):
-        raise Exception('Invaild type. The first parameter must be an integer or a float.')
+        raise TypeError('The first parameter must be an integer or a float.')
     if int(n) == 0:
         tarr.append('không')
     elif int(n) < 0:
@@ -45,11 +48,11 @@ def num_to_text(n):
         n = abs(n)
     ns = str(n)
     if isinstance(n, float) and '.' in ns:
-        decimal = True
+        is_decimal = True
         intn, decn = ns.split('.')
         ns = intn
     else:
-        decimal = False
+        is_decimal = False
     
     length = len(ns)
     splited = [ns[0:len(ns) % 3]] + [ns[i:i+3] for i in range(len(ns) % 3, len(ns), 3)]
@@ -70,7 +73,7 @@ def num_to_text(n):
             tarr.extend(['tỉ'] * bilis)
         length -= 3
     
-    if decimal:
+    if is_decimal:
         tarr.append('phẩy')
         if len(decn) == 2 and decn[0] == 1:
             tarr.extend(per_thousand(int(decn)))
