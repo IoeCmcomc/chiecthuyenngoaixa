@@ -1,4 +1,4 @@
-from ctnx.number import num_to_text
+from ctnx import num_to_text
 # from pprint import pprint
 import pytest
 
