@@ -42,7 +42,8 @@ example:
 
 ```python
 >>> from ctnx import remove_diacritics
->>> remove_diacritics("Đàn ong thấy cái lon thì bu vào.") 'Dan ong thay cai lon thi bu vao.'
+>>> remove_diacritics("Đàn ong thấy cái lon thì bu vào.")
+'Dan ong thay cai lon thi bu vao.'
 ```
 
 - To convert a number to Vietnamese text:
