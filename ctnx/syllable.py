@@ -10,6 +10,8 @@ from .constants import TONES, TONE_NAMES
 from .misc import normalize, separate_tone
 
 class TonePlacer(ABC):
+    """Controls tone mark placements."""
+
     @staticmethod
     @lru_cache(maxsize=160)
     def place_to_char(char, tone) -> str:
@@ -64,6 +66,8 @@ class OldStyleTonePlacer(NewStyleTonePlacer):
             return super().placement_index(syllable)
 
 class Syllable:
+    """Represent a syllable in Vietnamese."""
+
     ONSETS = ('b', 'ch', 'c', 'd', 'đ', 'gh', 'gi', 'g', 'h', 'kh', 'k', 'l', 'm', 'ngh', 'ng', 'nh', 'ng',
     'n', 'ph', 'p', 'qu', 'r', 's', 'th', 'tr', 't', 'v', 'x', '')
     MONOPHTHONGS = ('a', 'ă', 'â', 'e', 'ê', 'i', 'o', 'ô', 'ơ', 'u', 'ư', 'y')
@@ -95,14 +99,16 @@ class Syllable:
        return f"Syllable({self.onset}, {self.nucleus}, {self.coda}, {self.tone})"
    
     def __str__(self):
-       return self.toString()
+       return self.to_string()
        
     def __bool__(self):
         return True
     
     @classmethod
     @lru_cache
-    def fromString(cls, string: str) -> Syllable:
+    def from_string(cls, string: str) -> Syllable:
+        """Create a Syllable object from string."""
+
         string = normalize(string).lower()
         if ' ' in string:
             return
@@ -135,7 +141,8 @@ class Syllable:
                 
         return Syllable(onset, nucleus, coda, tone)
        
-    def toString(self) -> str:
+    def to_string(self) -> str:
+        """Return the written form of the syllable."""
         onset = self.onset
         nucleus = self.nucleus
         coda = self.coda
@@ -147,11 +154,13 @@ class Syllable:
         return ''.join((onset, self.tone_placer.place(self), coda))
 
     @property
-    def onset(self):
+    def onset(self) -> str:
+        """The initial consonant part of the syllable."""
+
         return self._onset
 
     @onset.setter
-    def onset(self, value):
+    def onset(self, value: str):
         value = value.lower()
         original = value
         if hasattr(self, "_onset"):
@@ -176,11 +185,13 @@ class Syllable:
             raise ValueError(f"Invaild onset: {value}")
     
     @property
-    def nucleus(self):
-         return self._nucleus
+    def nucleus(self) -> str:
+        """The vowel part of the syllable."""
+        
+        return self._nucleus
         
     @nucleus.setter
-    def nucleus(self, value):
+    def nucleus(self, value: str):
         value = value.lower()
         original = value
         original_onset = self.onset
@@ -201,11 +212,13 @@ class Syllable:
             raise ValueError(f"Invaild nucleus: {value}")
 
     @property
-    def coda(self):
-         return self._coda
+    def coda(self) -> str:
+        """The final consonant part of the syllable."""
+
+        return self._coda
         
     @coda.setter
-    def coda(self, value):
+    def coda(self, value: str):
         value = value.lower()
         original = value
         original_nucleus = self.nucleus
@@ -228,11 +241,22 @@ class Syllable:
             raise ValueError(f"Invaild coda: {value}")
 
     @property
-    def tone(self):
-         return self._tone
+    def tone(self) -> str:
+        """The tone of the syllable.
+        
+        The returned tone is denoted as the following:
+        '': unmarked (ngang)
+        '/': acute accent (sắc)
+        '\\': grave accent (huyền)
+        '?': hook above (hỏi)
+        '~': tilde (ngã)
+        '.': dot below (nặng)
+        """
+
+        return self._tone
         
     @tone.setter
-    def tone(self, value):
+    def tone(self, value: str):
         if value in TONES:
             if hasattr(self, "_coda"):
                 if (self.coda in {'c', 'p', 't'}) and not (value in {'/', '.'}):

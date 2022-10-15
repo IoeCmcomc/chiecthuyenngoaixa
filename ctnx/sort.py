@@ -6,6 +6,9 @@ from .constants import CHAR_ORDER_DICT
 
 
 class ViSortKey:
+    """Vietnamese-aware sorting key class for use with the `key` parameter
+    in `sorted()` and `str.sort()` functions."""
+
     def __init__(self, string=''):
         self.string = string
 

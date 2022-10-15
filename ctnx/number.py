@@ -1,7 +1,23 @@
 from typing import Union
 
 
-def num_to_text(n: Union[int, float]):
+def num_to_words(n: Union[int, float]) -> str:
+    """Convert a number to Vietnamese words.
+
+    Convert a number to its Vietnamese formal spoken form. It supports
+    long numbers (both integers and decimals).
+
+    Parameters
+    ----------
+    n : int or float
+        The number to be converted
+
+    Returns
+    -------
+    str
+        The spoken form of the number
+    """
+    
     digits = ('không', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín', 'mười')
     levels = ('đơn vị', 'nghìn', 'triệu')
     

@@ -1,4 +1,4 @@
-from ctnx import num_to_text
+from ctnx import num_to_words
 # from pprint import pprint
 import pytest
 
@@ -1070,8 +1070,10 @@ dataset = [
 
 @pytest.mark.parametrize("number, text", dataset)
 def test_num_to_test(number, text):
-    assert num_to_text(number) == text
+    assert num_to_words(number) == text
 
 def test_invalid_input():
     with pytest.raises(TypeError):
-        num_to_text("123456")
+        num_to_words("123456")
+
+print(num_to_words(123456789021003.456789))

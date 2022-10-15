@@ -482,6 +482,26 @@ class CccdResult(NamedTuple):
 
 
 def parse_cccd(raw: Union[int, str]) -> CccdResult:
+    """Extract information from a Vietnamese Citizen Identity Card
+    (Căn cước công dân) number.
+    
+    Parameters
+    ----------
+    raw : str or int
+        The ID number to be parsed
+
+    Returns
+    -------
+    CccdResult
+        A named tuple contains the extracted information, consist of
+        gender, date of birth, register place and the incremental ID
+
+    Raises
+    ------
+    ParseError
+        If the ID is invalid
+    
+    """
     code = raw
     if isinstance(raw, int):
         code = f'{raw:012}'
@@ -510,6 +530,20 @@ def parse_cccd(raw: Union[int, str]) -> CccdResult:
 
 
 def is_valid_cccd(raw) -> bool:
+    """Check whether a Vietnamese Citizen Identity Card
+    (Căn cước công dân) number is vaild or not.
+    
+    Parameters
+    ----------
+    raw : str or int
+        The ID number to be validated
+
+    Returns
+    -------
+    bool
+        Whether the ID is vaild or not
+    """
+
     try:
         parse_cccd(raw)
         return True

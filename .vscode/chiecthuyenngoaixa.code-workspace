@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"esbonio.sphinx.buildDir": "${workspaceFolder}/docs/build/html",
+		"esbonio.sphinx.confDir": "${workspaceFolder}\\docs\\source"
+	}
+}

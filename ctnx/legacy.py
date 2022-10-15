@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+"""This module contains legacy functions, classes and unused functions."""
+
 import unicodedata
 from .misc import separate_tone
 from .constants import CHAR_ORDER_DICT
