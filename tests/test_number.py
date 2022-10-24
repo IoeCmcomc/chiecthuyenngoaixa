@@ -1,5 +1,8 @@
+# -*- coding: utf-8 -*-
+
 from ctnx import num_to_words
 # from pprint import pprint
+from decimal import Decimal
 import pytest
 
 dataset = [
@@ -1061,11 +1064,16 @@ dataset = [
     'chín tỉ chín trăm chín mươi chín triệu chín trăm chín mươi chín nghìn chín '
     'trăm chín mươi chín'),
     (1000010001, 'một tỉ không trăm mười nghìn không trăm linh một'),
-    (3.14, 'ba phẩy một bốn'),
+    (3.14, 'ba phẩy mười bốn'),
     (22.4, 'hai mươi hai phẩy bốn'),
     (-195.8, 'âm một trăm chín mươi lăm phẩy tám'),
     (3.141592653589793,
-    'ba phẩy một bốn một năm chín hai sáu năm ba năm tám chín bảy chín ba')
+    'ba phẩy một bốn một năm chín hai sáu năm ba năm tám chín bảy chín ba'),
+    (0.100, 'không phẩy một'),
+    (2.35, 'hai phẩy ba mươi lăm'),
+    (0.032, 'không phẩy không trăm ba mươi hai'),
+    (0.504, 'không phẩy năm trăm linh bốn'),
+    (1.0, 'một phẩy không'),
 ]
 
 @pytest.mark.parametrize("number, text", dataset)
@@ -1074,6 +1082,24 @@ def test_num_to_test(number, text):
 
 def test_invalid_input():
     with pytest.raises(TypeError):
-        num_to_words("123456")
+        num_to_words(None)
 
-print(num_to_words(123456789021003.456789))
+def test_decimal_input():
+    assert num_to_words(Decimal("123456789.987654321")) == "một trăm hai mươi ba triệu bốn trăm năm mươi sáu nghìn bảy trăm tám mươi chín phẩy chín tám bảy sáu năm bốn ba hai một"
+
+def test_valid_string():
+    assert num_to_words('002022') == "hai nghìn không trăm hai mươi hai"
+    assert num_to_words('-10000') == "âm mười nghìn"
+    assert num_to_words('-3.1400') == "âm ba phẩy mười bốn"
+    assert num_to_words('123456789021003.15') == "một trăm hai mươi ba nghìn tỉ bốn trăm năm mươi sáu tỉ bảy trăm tám mươi chín triệu không trăm hai mươi mốt nghìn không trăm linh ba phẩy mười lăm"
+    assert num_to_words('000') == "không"
+    assert num_to_words('.5') == "không phẩy năm"
+    assert num_to_words('0.15') == "không phẩy mười lăm"
+
+def test_invalid_string():
+    with pytest.raises(ValueError):
+        num_to_words("")
+    with pytest.raises(ValueError):
+        num_to_words(" ")
+    with pytest.raises(ValueError):
+        num_to_words("abc")

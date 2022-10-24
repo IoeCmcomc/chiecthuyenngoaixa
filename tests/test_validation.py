@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from ctnx.validation import CccdResult, parse_cccd, is_valid_cccd
 
 

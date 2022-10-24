@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from ctnx.misc import remove_diacritics, remove_tones, sep_tone_from_char, separate_tone
 
 

@@ -6,6 +6,11 @@
 	],
 	"settings": {
 		"esbonio.sphinx.buildDir": "${workspaceFolder}/docs/build/html",
-		"esbonio.sphinx.confDir": "${workspaceFolder}\\docs\\source"
+		"esbonio.sphinx.confDir": "${workspaceFolder}\\docs\\source",
+		"python.testing.pytestArgs": [
+			".."
+		],
+		"python.testing.unittestEnabled": false,
+		"python.testing.pytestEnabled": true
 	}
 }

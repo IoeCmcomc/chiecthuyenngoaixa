@@ -1,7 +1,10 @@
-from typing import Union
+# -*- coding: utf-8 -*-
+
+from typing import Union, AnyStr
+from decimal import Decimal, InvalidOperation
 
 
-def num_to_words(n: Union[int, float]) -> str:
+def num_to_words(n: Union[int, float, AnyStr, Decimal]) -> str:
     """Convert a number to Vietnamese words.
 
     Convert a number to its Vietnamese formal spoken form. It supports
@@ -55,7 +58,12 @@ def num_to_words(n: Union[int, float]) -> str:
         return tarr
     
     tarr = []
-    if not isinstance(n, (int, float)):
+    if isinstance(n, str):
+        try:
+            n = Decimal(n)
+        except InvalidOperation as e:
+            raise ValueError(f"'{n}' is not a valid number.")
+    elif not isinstance(n, (int, float, Decimal)):
         raise TypeError('The first parameter must be an integer or a float.')
     if int(n) == 0:
         tarr.append('không')
@@ -63,7 +71,7 @@ def num_to_words(n: Union[int, float]) -> str:
         tarr.append('âm')
         n = abs(n)
     ns = str(n)
-    if isinstance(n, float) and '.' in ns:
+    if '.' in ns:
         is_decimal = True
         intn, decn = ns.split('.')
         ns = intn
@@ -91,8 +99,13 @@ def num_to_words(n: Union[int, float]) -> str:
     
     if is_decimal:
         tarr.append('phẩy')
-        if len(decn) == 2 and decn[0] == 1:
-            tarr.extend(per_thousand(int(decn)))
+        if decn != '0':
+            decn = decn.rstrip('0')
+        if 2 <= len(decn) <= 3:
+            dec_int = int(decn)
+            if decn[0] == '0' and 1 <= dec_int <= 99:
+                tarr.append('không trăm')
+            tarr.extend(per_thousand(dec_int))
         else:
             tarr.extend(per_digit(int(decn)))
     tarr = list(filter(None, tarr))
