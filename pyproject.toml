@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chiecthuyenngoaixa"
-version = "0.1.1"
+version = "0.1.2"
 description = "An utility library for processing Vietnamese texts"
 authors = ["IoeCmcomc <53734763+IoeCmcomc@users.noreply.github.com>"]
 license = "MIT"
