@@ -42,7 +42,7 @@ Some commonly used functions and classes can be imported directly. For example:
 
         >>> from ctnx import num_to_words
         >>> num_to_words(123456789021003.45)
-        'một trăm hai mươi ba nghìn tỉ bốn trăm năm mươi sáu tỉ bảy trăm tám mươi chín triệu không trăm hai mươi mốt nghìn không trăm linh ba phẩy bốn năm'
+        'một trăm hai mươi ba nghìn tỉ bốn trăm năm mươi sáu tỉ bảy trăm tám mươi chín triệu không trăm hai mươi mốt nghìn không trăm linh ba phẩy bốn mươi lăm'
 
 * To sort Vietnamese texts:
 

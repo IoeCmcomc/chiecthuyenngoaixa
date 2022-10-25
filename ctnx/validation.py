@@ -476,6 +476,8 @@ COUNTRY_ID_DICT = {
 
 
 class CccdResult(NamedTuple):
+    """Contain information of a parsed Vietnamese Citizen Identity Card
+    (Căn cước công dân) number."""
     id: str
     is_male: bool
     birth_year: int

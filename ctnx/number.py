@@ -12,13 +12,22 @@ def num_to_words(n: Union[int, float, AnyStr, Decimal]) -> str:
 
     Parameters
     ----------
-    n : int or float
-        The number to be converted
+    n : int, float, Decimal or str
+        The number to be converted. If `n` is a str, it will be converted
+        to a Decimal object.
 
     Returns
     -------
     str
         The spoken form of the number
+    
+    Raises
+    ------
+    TypeError
+        If the input's type is neither int, float, str nor Decimal
+
+    ValueError
+        If the input string does not represent a valid number
     """
     
     digits = ('không', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín', 'mười')
