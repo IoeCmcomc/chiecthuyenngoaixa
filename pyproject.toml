@@ -28,10 +28,10 @@ Sphinx = {version = "^5.2.3", optional = true}
 docs = ["Sphinx"]
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
+pytest = "^7.1"
 
 [tool.poetry.group.dev.dependencies]
-autopep8 = "^1.7.0"
+autopep8 = "^2.0.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
