@@ -3,7 +3,15 @@
 from unicodedata import name as unicode_name, lookup as unicode_lookup, normalize as unicode_normalize
 from functools import lru_cache
 
-from .constants import TONES, TONE_NAMES, NO_TONE_CHAR_TRANS
+from .constants import TONES, TONE_NAMES, NO_TONE_CHAR_TRANS, CONFUSABLE_CHAR_TRANS
+
+def normalize_confusables(text: str) -> str:
+    """Converts a confusable text to a potentially normal text.
+    
+    Replace similar-looking characters and homoglyphs with theirs equivalent
+    Vietnamese characters. Small cap letters will be converted to lowercase.
+    """
+    return text.translate(CONFUSABLE_CHAR_TRANS)
 
 def normalize(text: str) -> str:
     """Converts combining Unicode characters to theirs equivalent precomposed characters."""
