@@ -1074,6 +1074,7 @@ dataset = [
     (0.032, 'không phẩy không trăm ba mươi hai'),
     (0.504, 'không phẩy năm trăm linh bốn'),
     (1.0, 'một phẩy không'),
+    (999999999999, 'chín trăm chín mươi chín tỉ chín trăm chín mươi chín triệu chín trăm chín mươi chín nghìn chín trăm chín mươi chín'),
 ]
 
 @pytest.mark.parametrize("number, text", dataset)

@@ -8,7 +8,7 @@
 
 
 project = 'chiecthuyenngoaixa'
-copyright = '2022, IoeCmcomc'
+copyright = '2022 – 2023, IoeCmcomc'
 author = 'IoeCmcomc'
 release = '0.1.2'
 
