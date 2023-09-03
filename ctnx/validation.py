@@ -482,7 +482,7 @@ class CccdResult(NamedTuple):
     is_male: bool
     birth_year: int
     birth_country: str
-    birth_province: str = None
+    birth_province: str = ''
 
 
 def parse_cccd(raw: Union[int, str]) -> CccdResult:
@@ -506,13 +506,15 @@ def parse_cccd(raw: Union[int, str]) -> CccdResult:
         If the ID is invalid
     
     """
-    code = raw
+    code: str
     if isinstance(raw, int):
         code = f'{raw:012}'
+    else:
+        code = raw
     if len(code) != 12:
         raise ParseError("A citizen ID number must have 12 digits", 0)
     country = None
-    province = None
+    province = ''
     if code[0] == '0':
         country = "vn"
         try:

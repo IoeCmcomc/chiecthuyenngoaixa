@@ -66,7 +66,7 @@ class OldStyleTonePlacer(NewStyleTonePlacer):
             return super().placement_index(syllable)
 
 class Syllable:
-    """Represent a syllable in Vietnamese."""
+    """Represent a syllable in Vietnamese language."""
 
     ONSETS = ('b', 'ch', 'c', 'd', 'đ', 'gh', 'gi', 'g', 'h', 'kh', 'k', 'l', 'm', 'ngh', 'ng', 'nh', 'ng',
     'n', 'ph', 'p', 'qu', 'r', 's', 'th', 'tr', 't', 'v', 'x', '')
@@ -111,7 +111,7 @@ class Syllable:
 
         string = normalize(string).lower()
         if ' ' in string:
-            return
+            raise Exception(f"The input string must not have whitespaces")
         original = string
         onset = nucleus = coda = tone = ''
         

@@ -62,7 +62,7 @@ def sep_tone_from_char(char: str):
         name = unicode_name(char)
         #print(name)
     except ValueError:
-        return ('', '')
+        return ('', char)
     nname = ''
     tone = ''
         
@@ -72,7 +72,7 @@ def sep_tone_from_char(char: str):
             nname = name.replace(tname, '')
             break
     else:
-        return ('', '')
+        return ('', char)
         
     if nname.endswith('WITH '):
         nname = nname[:-5]
