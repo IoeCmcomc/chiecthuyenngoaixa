@@ -1075,6 +1075,8 @@ dataset = [
     (0.504, 'không phẩy năm trăm linh bốn'),
     (1.0, 'một phẩy không'),
     (999999999999, 'chín trăm chín mươi chín tỉ chín trăm chín mươi chín triệu chín trăm chín mươi chín nghìn chín trăm chín mươi chín'),
+    (1415*10**9, 'một nghìn bốn trăm mười lăm tỉ'),
+    (9460730472580800, 'chín triệu bốn trăm sáu mươi nghìn bảy trăm ba mươi tỉ bốn trăm bảy mươi hai triệu năm trăm tám mươi nghìn tám trăm'),
 ]
 
 @pytest.mark.parametrize("number, text", dataset)
@@ -1092,7 +1094,7 @@ def test_valid_string():
     assert num_to_words('002022') == "hai nghìn không trăm hai mươi hai"
     assert num_to_words('-10000') == "âm mười nghìn"
     assert num_to_words('-3.1400') == "âm ba phẩy mười bốn"
-    assert num_to_words('123456789021003.15') == "một trăm hai mươi ba nghìn tỉ bốn trăm năm mươi sáu tỉ bảy trăm tám mươi chín triệu không trăm hai mươi mốt nghìn không trăm linh ba phẩy mười lăm"
+    assert num_to_words('123456789021003.15') == "một trăm hai mươi ba nghìn bốn trăm năm mươi sáu tỉ bảy trăm tám mươi chín triệu không trăm hai mươi mốt nghìn không trăm linh ba phẩy mười lăm"
     assert num_to_words('000') == "không"
     assert num_to_words('.5') == "không phẩy năm"
     assert num_to_words('0.15') == "không phẩy mười lăm"
