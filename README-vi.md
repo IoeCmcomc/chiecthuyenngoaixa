@@ -6,41 +6,33 @@
 ![PyPI](https://img.shields.io/pypi/v/chiecthuyenngoaixa)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/chiecthuyenngoaixa)
 
-[Tiếng Việt](README-vi.md "Vietnamese version")
+**chiecthuyenngoaixa** là một thư viện Python cung cấp các hàm và lớp để thực hiện các công việc _xử lí văn bản tiếng Việt_, chẳng hạn như loại bỏ dấu thanh, chuyển số thành chữ, sắp xếp câu, kiểm tra tính hợp lệ, v.v..
 
-**chiecthuyenngoaixa** is a Python library which provides functions and
-classes for various tasks in _processing Vietnamese texts_, such as
-removing diacritics, converting numbers to words, sorting strings,
-validations and more.
+Thư viện được viết hoàn toàn bằng Python, không có phần phụ thuộc bên ngoài. Hỗ trợ Python 3.8 trở lên.
 
-This library is written on pure Python with no dependencies. Python 3.8
-and above is supported.
+## Cài đặt
 
-## Installation
-
-Chiecthuyenngoaixa is available on
-[PyPI](https://pypi.org/project/chiecthuyenngoaixa/). Open a terminal or
-_Command Prompt_ (on Windows) and run the following command:
+Chiecthuyenngoaixa có mặt trên 
+[PyPI](https://pypi.org/project/chiecthuyenngoaixa/). Mở dòng lệnh (terminal) hoặc
+_Command Prompt_ (trên Windows) và chạy lệnh sau:
 
 ``` console
 pip install chiecthuyenngoaixa
 ```
 
-If you are using [Poetry](https://python-poetry.org/), use this instead:
+Nếu bạn đang sử dụng [Poetry](https://python-poetry.org/), hãy dùng lệnh này:
 
 ``` console
 poetry add chiecthuyenngoaixa
 ```
 
-## Basic usage
+## Cách dùng cơ bản
 
-The library will now be available as `ctnx` module (abbreviation of
-_chiecthuyenngoaixa_).
+Thư viện giờ đây sẽ có thể dùng được bằng mô-đun `ctnx` (viết tắt của _chiecthuyenngoaixa_).
 
-Some commonly used functions and classes can be imported directly. For
-example:
+Một số hàm và lớp thường dùng có thể được nhập trực tiếp. Ví dụ:
 
-- To convert Vietnamese text to ASCII-only text:
+- Để chuyển văn bản tiếng Việt thành văn bản chỉ gồm mã ASCII (bỏ hết dấu):
 
 ```python
 >>> from ctnx import remove_diacritics
@@ -48,7 +40,7 @@ example:
 'Dan ong thay cai lon thi bu vao.'
 ```
 
-- To convert a number to Vietnamese text:
+- Để chuyển số thành văn bản tiếng Việt:
 
 ```python
 >>> from ctnx import num_to_words
@@ -56,7 +48,7 @@ example:
 'một trăm hai mươi ba nghìn bốn trăm năm mươi sáu tỉ bảy trăm tám mươi chín triệu không trăm hai mươi mốt nghìn không trăm linh ba phẩy bốn mươi lăm'
 ```
 
-- To sort Vietnamese texts:
+- Để sắp xếp các văn bản tiếng Việt:
 
 ```python
 >>> from ctnx import ViSortKey
@@ -65,4 +57,4 @@ example:
 ['Điện Biên', 'Hà Giang', 'Hà Nam', 'Hà Nội', 'Hà Tĩnh', 'Hải Dương', 'Hải Phòng', 'Hạ Long', 'Hậu Giang', 'Hoà Bình', 'Hưng Yên']
 ```
 
-For further usages, see the documentation, which is hosted on [chiecthuyenngoaixa.readthedocs.io](https://chiecthuyenngoaixa.readthedocs.io/en/latest/).
+Để biết thêm cách sử dụng, hãy xem tài liệu (tiếng Anh) nằm ở [chiecthuyenngoaixa.readthedocs.io](https://chiecthuyenngoaixa.readthedocs.io/en/latest/).
