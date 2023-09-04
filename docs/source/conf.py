@@ -10,7 +10,7 @@
 project = 'chiecthuyenngoaixa'
 copyright = '2022 – 2023, IoeCmcomc'
 author = 'IoeCmcomc'
-release = '0.1.2'
+release = '0.2.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
