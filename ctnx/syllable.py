@@ -85,7 +85,7 @@ class Syllable:
     NUCLEI = TRIPHTHONGS + DIPHTHONGS + MONOPHTHONGS
     CODAS = ('ch', 'c', 'm', 'ng', 'nh', 'n', 'p', 't', '')
     
-    AUTO_CORRECT = True
+    AUTO_CORRECT: bool = True
     
     tone_placer = NewStyleTonePlacer
     
@@ -96,13 +96,19 @@ class Syllable:
         self.tone = tone
    		
     def __repr__(self):
-       return f"Syllable({self.onset}, {self.nucleus}, {self.coda}, {self.tone})"
+        if self.tone:
+            return f"Syllable({self.onset}, {self.nucleus}, {self.coda}, {self.tone})"
+        else:
+            return f"Syllable({self.onset}, {self.nucleus}, {self.coda})"
    
     def __str__(self):
        return self.to_string()
        
     def __bool__(self):
         return True
+    
+    def __eq__(self, other: Syllable):
+        return self.onset == other.onset and self.nucleus == other.nucleus and self.coda == self.coda and self.tone == other.tone
     
     @classmethod
     @lru_cache
@@ -226,6 +232,8 @@ class Syllable:
             if value == '':
                 if self.nucleus in self.OPEN_NUCLEI:
                     raise ValueError(f"Open syllable (nucleus: {self.nucleus}) must have a coda")
+            elif (self.nucleus == 'uy' or (self.nucleus == 'y' and self.onset == 'qu')) and value not in {'c', 'ng', ''}:
+                pass
             elif self.nucleus in self.CLOSED_NUCLEI:
                 value = ''
             else:
