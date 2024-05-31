@@ -78,7 +78,7 @@ PROVINCE_ID_DICT = {
     96: "Cà Mau",
 }
 
-COUNTRY_NAME_DICT = {
+COUNTRY_ID_DICT = {
     101: 'af',
     102: 'eg',
     103: 'al',
@@ -276,7 +276,7 @@ COUNTRY_NAME_DICT = {
     295: 'zw'
 }
 
-COUNTRY_ID_DICT = {
+COUNTRY_NAME_DICT = {
     101: 'Afghanistan',
     102: 'Ai Cập',
     103: 'Albania',
@@ -535,7 +535,7 @@ def parse_cccd(raw: Union[int, str]) -> CccdResult:
     return CccdResult(id, is_male, year, country, province)
 
 
-def is_valid_cccd(raw) -> bool:
+def is_valid_cccd(raw: Union[int, str]) -> bool:
     """Check whether a Vietnamese Citizen Identity Card
     (Căn cước công dân) number is vaild or not.
     

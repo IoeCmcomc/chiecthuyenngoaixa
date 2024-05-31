@@ -8,7 +8,7 @@
 
 
 project = 'chiecthuyenngoaixa'
-copyright = '2022 – 2023, IoeCmcomc'
+copyright = '2022 – 2024, IoeCmcomc'
 author = 'IoeCmcomc'
 release = '0.2.0'
 
@@ -22,6 +22,7 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.autodoc',
     # 'sphinx.ext.autosummary',
+    'sphinx.ext.intersphinx',
 ]
 
 templates_path = ['_templates']
@@ -29,6 +30,8 @@ exclude_patterns = []
 
 
 napoleon_google_docstring = False
+
+intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
 
 
 # -- Options for HTML output -------------------------------------------------
