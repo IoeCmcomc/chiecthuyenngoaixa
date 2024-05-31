@@ -71,11 +71,11 @@ class Syllable:
     ONSETS = ('b', 'ch', 'c', 'd', 'đ', 'gh', 'gi', 'g', 'h', 'kh', 'k', 'l', 'm', 'ngh', 'ng', 'nh', 'ng',
     'n', 'ph', 'p', 'qu', 'r', 's', 'th', 'tr', 't', 'v', 'x', '')
     MONOPHTHONGS = ('a', 'ă', 'â', 'e', 'ê', 'i', 'o', 'ô', 'ơ', 'u', 'ư', 'y')
-    # 'oo' is not a diphthong but it's denoted using two characters
-    OPEN_DIPHTHONGS = ('iê', 'oă', 'oo', 'uâ', 'uô', 'ươ', 'yê')
+    # 'oo' and 'ôô' are not a diphthong but it's denoted using two characters
+    OPEN_DIPHTHONGS = ('iê', 'oă', 'oo', 'ôô', 'uâ', 'uô', 'ươ', 'yê')
     ROUNDED_DIPHTHONGS = ('oa', 'oe', 'uê')
     CLOSED_DIPHTHONGS = ('ai', 'ao', 'au', 'ay', 'âu', 'ây', 'eo', 'êu', 'ia', 'iu', 'oi',
-    'ôi', 'ơi', 'ua', 'ui', 'uơ', 'uy', 'ưa', 'ưi', 'ưu')
+    'ôi', 'ơi', 'ua', 'ui', 'uơ', 'uy', 'ưa', 'ưi', 'ưu', 'yu')
     DIPHTHONGS = OPEN_DIPHTHONGS + ROUNDED_DIPHTHONGS + CLOSED_DIPHTHONGS
     CLOSED_TRIPHTHONGS = ('iêu', 'oai', 'oao', 'oay', 'oeo', 'uay', 'uây', 'uôi', 'uya', 'uyu', 'ươi', 'ươu', 'yêu')
     OPEN_TRIPHTHONGS = ('uyê',)
@@ -134,10 +134,9 @@ class Syllable:
             string = string[len(nucleus):]
         except StopIteration:
             if onset == 'gi':
-                if string == '':
-                    nucleus = 'i'
-                else:
-                    raise Exception(f"Invaild syllable: {original}")
+                nucleus = 'i'
+            else:
+                raise Exception(f"Invaild syllable: {original}")
         
         coda = next(filter(string.startswith, cls.CODAS))
         string = string[len(coda):]
@@ -152,7 +151,6 @@ class Syllable:
         onset = self.onset
         nucleus = self.nucleus
         coda = self.coda
-        tone = self.tone
         
         if (onset == 'gi') and ((nucleus == 'i') or (nucleus[:2] == 'iê')):
             onset = 'g'
@@ -192,7 +190,7 @@ class Syllable:
     
     @property
     def nucleus(self) -> str:
-        """The vowel part of the syllable."""
+        """The vowel part of the syllable as stored in this object, not necessarily including the semivowel."""
         
         return self._nucleus
         
@@ -277,3 +275,18 @@ class Syllable:
             self._tone = value
         else:
             raise ValueError(f"Invaild tone: {value}")
+    
+    @property
+    def vowel(self) -> str:
+        """The vowel part of the syllable, including the semivowel if any."""
+
+        if self.onset == 'qu':
+            return 'u' + self.nucleus
+        else:
+            return self.nucleus
+        
+    @property
+    def rhyme(self) -> str:
+        """The rhyme of the syllable, which is the combination of the vowel and the coda."""
+
+        return self.vowel + self.coda
