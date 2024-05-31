@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import logging
+
 from ctnx.misc import remove_diacritics, remove_tones, sep_tone_from_char, separate_tone, normalize_confusables, normalize
 # from ctnx.constants import CONFUSABLE_CHAR_TRANS
 
@@ -45,3 +47,26 @@ def test_normalize_confusables():
     assert normalize_confusables(
         "Là đàn ôทɢ мà ρᏂảเ Ꭶốทɢ, cư 𝚡ử ทᏂư мột ᴄô ɢáเ suốt мột τᏂời ɢเɑท dài τᏂì tui ҜᏂôทɢ nghĩ ra ทổi") == \
         "Là đàn ông mà phải sống, cư xử như một cô gái suốt một thời gian dài thì tui không nghĩ ra nổi"
+    assert normalize_confusables("Bằпg cách ɴày, ᴄó ɫһể xả sạᴄһ 𝘷à ᴛιếᴛ kiệm ɴướᴄ Һơᶇ.") == \
+        "Bằng cách này, có thể xả sạch và tiết kiệm nước hơn."
+    assert normalize_confusables("“Tôi тɾả điểm ϲհσ mấy người, mấy người ϲó тɾả bố ϲհσ tôi đượϲ кհôռɢ”") == \
+        "\"Tôi trả điểm cho mấy người, mấy người có trả bố cho tôi được không\""
+    assert normalize_confusables("Mấy ɑι như HĿV Mɑι Đứͼ Chυnɡ, U80 vẫn ‘độι nắnɡ mưɑ’ mυốn bảo vệ HCV SEA Gɑmes, mơ ƙì тíͼh vĩ đạι ở World Cυp") == \
+        "Mấy ai như HLV Mai Đức Chung, U80 vẫn 'đội nắng mưa' muốn bảo vệ HCV SEA Games, mơ kì tích vĩ đại ở World Cup"
+    assert normalize_confusables("Cô ɢáᎥ тɾẻ đột ռᏂᎥên biếɳ ᏂìɳᏂ ǥiữa đường, cởi sạch đồ ngủ để thay bộ váy ѕexy, ở ռᏂà cháu ngoαռ lắm ռᏂưռɢ ít khi ở ռᏂà") == \
+        "Cô gái trẻ đột nhiên biến hình giữa đường, cởi sạch đồ ngủ để thay bộ váy sexy, ở nhà cháu ngoan lắm nhưng ít khi ở nhà"
+    
+    assert normalize_confusables("""ᴛìᴍ ɴɢườɪ ɢõ đề ᴄươɴɢ
+𝟻𝟶ᴋ  / 𝟷 ʙàɪ ᴛɪếɴɢ ᴠɪệᴛ
+𝟷𝟶𝟶ᴋ  / 𝟷 ʙàɪ ᴛɪếɴɢ ᴀɴʜ
+ᴋ ɢɪớɪ ʜạɴ ʙàɪ ᴄó ᴛʜể ᴄʜọɴ ʙàɪ để ʟàᴍ
+ᴄᴠ ᴄó ᴛʜậᴛ ɴɢʜɪêᴍ ᴛúᴄ 𝟷𝟶𝟶%
+ʟàᴍ ᴛʀêɴ đᴛʜᴏᴀɪ/ʟᴀᴘᴛᴏᴘ đềᴜ đượᴄ
+ʟươ-ɴɢ ɴʜậɴ ᴛʜᴇᴏ ʙàɪ"""
+                                 ) == """tìm người gõ đề cương
+50k  / 1 bài tiếng việt
+100k  / 1 bài tiếng anh
+k giới hạn bài có thể chọn bài để làm
+cv có thật nghiêm túc 100%
+làm trên đthoai/laptop đều được
+lươ-ng nhận theo bài"""

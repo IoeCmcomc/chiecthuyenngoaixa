@@ -1,7 +1,8 @@
 {
     "python.analysis.typeCheckingMode": "basic",
     "python.testing.pytestArgs": [
-        "tests"
+        "tests",
+        "--log-cli-level=INFO"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true
