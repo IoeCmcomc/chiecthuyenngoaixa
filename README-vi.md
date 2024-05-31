@@ -57,4 +57,22 @@ Một số hàm và lớp thường dùng có thể được nhập trực tiế
 ['Điện Biên', 'Hà Giang', 'Hà Nam', 'Hà Nội', 'Hà Tĩnh', 'Hải Dương', 'Hải Phòng', 'Hạ Long', 'Hậu Giang', 'Hoà Bình', 'Hưng Yên']
 ```
 
+Các hàm và lớp khác nằm ở các mô đun phụ khác nhau. Ví dụ:
+
+- Để chuyển một đoạn văn bản dễ gây khó đọc sang dạng bình thường:
+```python
+>>> from ctnx.misc import normalize_confusables
+>>> normalize_confusables("𝕮𝖍𝖎ế𝖈 𝖙𝖍𝖚𝖞ề𝖓 𝖓𝖌𝖔à𝖎 𝖝𝖆")
+'Chiếc thuyền ngoài xa'
+```
+
+- Để trích xuất thông tin từ mã số căn cước công dân:
+```python
+>>> from ctnx import validation
+>>> validation.is_valid_cccd("024192123456")
+True
+>>> validation.parse_cccd("024192123456")
+CccdResult(id='123456', is_male=False, birth_year=1992, birth_country='vn', birth_province='Bắc Giang')
+```
+
 Để biết thêm cách sử dụng, hãy xem tài liệu (tiếng Anh) nằm ở [chiecthuyenngoaixa.readthedocs.io](https://chiecthuyenngoaixa.readthedocs.io/en/latest/).
