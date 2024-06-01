@@ -286,7 +286,7 @@ class Syllable:
             return self.nucleus
         
     @property
-    def rhyme(self) -> str:
-        """The rhyme of the syllable, which is the combination of the vowel and the coda."""
+    def rime(self) -> str:
+        """The rime of the syllable, which is the combination of the vowel and the coda."""
 
         return self.vowel + self.coda

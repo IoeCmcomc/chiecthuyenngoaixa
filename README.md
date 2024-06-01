@@ -83,4 +83,32 @@ True
 CccdResult(id='123456', is_male=False, birth_year=1992, birth_country='vn', birth_province='Bắc Giang')
 ```
 
+- To extract tones from a Vietnamese syllable or text:
+
+```python
+>>> from ctnx.misc import separate_tone
+>>> separate_tone("Đẩu")
+('Đâu', '?')
+>>> toneNames = {'': 'thanh', '/': 'sắc', '\\': 'huyền', '?': 'hỏi', '~': 'ngã', '.': 'nặng'}
+>>> ' '.join(toneNames[separate_tone(syll)[1]] for syll in "Tôi thầm cảm ơn Đẩu đã giữ mình ở nán lại".split(' '))
+'thanh huyền hỏi thanh hỏi ngã ngã huyền hỏi sắc nặng'
+```
+
+- To manipulate Vietnamese syllables:
+
+```python
+>>> from ctnx.syllable import Syllable
+>>> text = "ba ngày một trận nhẹ năm ngày một trận nặng"
+>>> a = [Syllable.from_string(x) for x in text.split(' ')]
+>>> a
+[Syllable(b, a, ), Syllable(ng, ay, , \), Syllable(m, ô, t, .), Syllable(tr, â, n, .), Syllable(nh, e, , .), Syllable(n, ă, m), Syllable(ng, ay, , \), Syllable(m, ô, t, .), Syllable(tr, â, n, .), Syllable(n, ă, ng, .)]
+>>> for syll in a:
+...     syll.onset = 'nh'
+...
+>>> a
+[Syllable(nh, a, ), Syllable(nh, ay, , \), Syllable(nh, ô, t, .), Syllable(nh, â, n, .), Syllable(nh, e, , .), Syllable(nh, ă, m), Syllable(nh, ay, , \), Syllable(nh, ô, t, .), Syllable(nh, â, n, .), Syllable(nh, ă, ng, .)]
+>>> ' '.join(str(x) for x in a)
+'nha nhày nhột nhận nhẹ nhăm nhày nhột nhận nhặng'
+```
+
 For further usages, see the documentation, which is hosted on [chiecthuyenngoaixa.readthedocs.io](https://chiecthuyenngoaixa.readthedocs.io/en/latest/).
