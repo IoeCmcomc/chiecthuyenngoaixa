@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from typing import Union, Iterable, Set
 import unicodedata
 from abc import ABC, abstractmethod
 from functools import lru_cache
 
 from .constants import TONES, TONE_NAMES
-from .misc import normalize, separate_tone
+from .misc import normalize, separate_tone, is_even_tone
+
 
 class TonePlacer(ABC):
     """Controls tone mark placements."""
@@ -16,26 +18,27 @@ class TonePlacer(ABC):
     @lru_cache(maxsize=160)
     def place_to_char(char, tone) -> str:
         name = unicodedata.name(char)
-    
+
         if (tone != '') and (tone in TONES):
             if 'WITH' in name:
                 name += ' AND '
             else:
                 name += ' WITH '
             name += TONE_NAMES[TONES.index(tone)]
-    
+
         return unicodedata.lookup(name)
-    
+
     @classmethod
     def place(cls, syllable: Syllable) -> str:
         nucleus = syllable.nucleus
         i = cls.placement_index(syllable)
         return nucleus[:i] + cls.place_to_char(nucleus[i], syllable.tone) + nucleus[i+1:]
-    
+
     @classmethod
     @abstractmethod
     def placement_index(cls, syllable: Syllable) -> int:
         pass
+
 
 class NewStyleTonePlacer(TonePlacer):
     @classmethod
@@ -57,6 +60,7 @@ class NewStyleTonePlacer(TonePlacer):
             else:
                 return 2
 
+
 class OldStyleTonePlacer(NewStyleTonePlacer):
     @classmethod
     def placement_index(cls, syllable: Syllable):
@@ -65,51 +69,55 @@ class OldStyleTonePlacer(NewStyleTonePlacer):
         else:
             return super().placement_index(syllable)
 
+
 class Syllable:
     """Represent a syllable in Vietnamese language."""
 
     ONSETS = ('b', 'ch', 'c', 'd', 'đ', 'gh', 'gi', 'g', 'h', 'kh', 'k', 'l', 'm', 'ngh', 'ng', 'nh', 'ng',
-    'n', 'ph', 'p', 'qu', 'r', 's', 'th', 'tr', 't', 'v', 'x', '')
+              'n', 'ph', 'p', 'qu', 'r', 's', 'th', 'tr', 't', 'v', 'x', '')
     MONOPHTHONGS = ('a', 'ă', 'â', 'e', 'ê', 'i', 'o', 'ô', 'ơ', 'u', 'ư', 'y')
     # 'oo' and 'ôô' are not diphthongs but they're denoted using two characters
     OPEN_DIPHTHONGS = ('iê', 'oă', 'oo', 'ôô', 'uâ', 'uô', 'ươ', 'yê')
     ROUNDED_DIPHTHONGS = ('oa', 'oe', 'uê')
     CLOSED_DIPHTHONGS = ('ai', 'ao', 'au', 'ay', 'âu', 'ây', 'eo', 'êu', 'ia', 'iu', 'oi',
-    'ôi', 'ơi', 'ua', 'ui', 'uơ', 'uy', 'ưa', 'ưi', 'ưu', 'yu')
+                         'ôi', 'ơi', 'ua', 'ui', 'uơ', 'uy', 'ưa', 'ưi', 'ưu', 'yu')
     DIPHTHONGS = OPEN_DIPHTHONGS + ROUNDED_DIPHTHONGS + CLOSED_DIPHTHONGS
-    CLOSED_TRIPHTHONGS = ('iêu', 'oai', 'oao', 'oay', 'oeo', 'uay', 'uây', 'uôi', 'uya', 'uyu', 'ươi', 'ươu', 'yêu')
+    CLOSED_TRIPHTHONGS = ('iêu', 'oai', 'oao', 'oay', 'oeo',
+                          'uay', 'uây', 'uôi', 'uya', 'uyu', 'ươi', 'ươu', 'yêu')
     OPEN_TRIPHTHONGS = ('uyê',)
     TRIPHTHONGS = CLOSED_TRIPHTHONGS + OPEN_TRIPHTHONGS
     OPEN_NUCLEI = OPEN_TRIPHTHONGS + OPEN_DIPHTHONGS
     CLOSED_NUCLEI = CLOSED_TRIPHTHONGS + CLOSED_DIPHTHONGS
     NUCLEI = TRIPHTHONGS + DIPHTHONGS + MONOPHTHONGS
     CODAS = ('ch', 'c', 'm', 'ng', 'nh', 'n', 'p', 't', '')
-    
+
     AUTO_CORRECT: bool = True
-    
+
     tone_placer = NewStyleTonePlacer
-    
+
     def __init__(self, onset: str, nucleus: str, coda: str, tone=''):
         self.onset = onset
         self.nucleus = nucleus
         self.coda = coda
         self.tone = tone
-   		
+
     def __repr__(self):
         if self.tone:
             return f"Syllable({self.onset}, {self.nucleus}, {self.coda}, {self.tone})"
         else:
             return f"Syllable({self.onset}, {self.nucleus}, {self.coda})"
-   
+
     def __str__(self):
-       return self.to_string()
-       
+        return self.to_string()
+
     def __bool__(self):
         return True
-    
-    def __eq__(self, other: Syllable):
+
+    def __eq__(self, other: Union[str, Syllable]):
+        if isinstance(other, str):
+            other = Syllable.from_string(other)
         return self.onset == other.onset and self.nucleus == other.nucleus and self.coda == self.coda and self.tone == other.tone
-    
+
     @classmethod
     @lru_cache
     def from_string(cls, string: str) -> Syllable:
@@ -120,12 +128,12 @@ class Syllable:
             raise Exception(f"The input string must not have whitespaces")
         original = string
         onset = nucleus = coda = tone = ''
-        
+
         string, tone = separate_tone(string)
-        
+
         onset = next(filter(string.startswith, cls.ONSETS))
         string = string[len(onset):]
-        
+
         if onset == 'gi':
             if (len(string) > 1) and (string[0] == 'ê'):
                 string = 'i' + string
@@ -137,24 +145,25 @@ class Syllable:
                 nucleus = 'i'
             else:
                 raise Exception(f"Invaild syllable: {original}")
-        
+
         coda = next(filter(string.startswith, cls.CODAS))
         string = string[len(coda):]
-                
+
         if string != '':
-            raise Exception(f"Unexpected characters '{string}' after a syllable (in '{original}'')")
-                
+            raise Exception(
+                f"Unexpected characters '{string}' after a syllable (in '{original}'')")
+
         return Syllable(onset, nucleus, coda, tone)
-       
+
     def to_string(self) -> str:
         """Return the written form of the syllable."""
         onset = self.onset
         nucleus = self.nucleus
         coda = self.coda
-        
+
         if (onset == 'gi') and ((nucleus == 'i') or (nucleus[:2] == 'iê')):
             onset = 'g'
-        
+
         return ''.join((onset, self.tone_placer.place(self), coda))
 
     @property
@@ -168,13 +177,16 @@ class Syllable:
         value = value.lower()
         original = value
         if hasattr(self, "_onset"):
-            if value == self.onset: return
+            if value == self.onset:
+                return
         if value in self.ONSETS:
             if hasattr(self, "_nucleus"):
                 if value in {'ng', 'ngh'}:
-                    value = 'ngh' if (self.nucleus[0] in {'e', 'ê', 'i'}) else 'ng'
+                    value = 'ngh' if (self.nucleus[0] in {
+                                      'e', 'ê', 'i'}) else 'ng'
                 elif value in {'c', 'k'}:
-                    value = 'k' if (self.nucleus[0] in {'e', 'ê', 'i', 'y'}) else 'c'
+                    value = 'k' if (self.nucleus[0] in {
+                                    'e', 'ê', 'i', 'y'}) else 'c'
                 elif value == 'q':
                     nucleusChars = list(self.nucleus)
                     print(nucleusChars)
@@ -187,13 +199,13 @@ class Syllable:
                 self._onset = value
         else:
             raise ValueError(f"Invaild onset: {value}")
-    
+
     @property
     def nucleus(self) -> str:
         """The vowel part of the syllable as stored in this object, not necessarily including the semivowel."""
-        
+
         return self._nucleus
-        
+
     @nucleus.setter
     def nucleus(self, value: str):
         value = value.lower()
@@ -202,12 +214,13 @@ class Syllable:
         if value in self.NUCLEI:
             if hasattr(self, "_onset"):
                 if self.onset in {'ng', 'ngh'}:
-                    self.onset = 'ngh' if (value[0] in {'e', 'ê', 'i'}) else 'ng'
+                    self.onset = 'ngh' if (
+                        value[0] in {'e', 'ê', 'i'}) else 'ng'
                 elif self.onset in {'c', 'k', 'q'}:
                     if value[0] in {'e', 'ê', 'i', 'y'}:
-                         self.onset = 'k'
+                        self.onset = 'k'
                     elif value[0] != 'u':
-                         self.onset = 'c'
+                        self.onset = 'c'
             if not self.AUTO_CORRECT and (self.onset != original_onset):
                 raise ValueError(f"Invaild nucleus: {original}")
             else:
@@ -220,7 +233,7 @@ class Syllable:
         """The final consonant part of the syllable."""
 
         return self._coda
-        
+
     @coda.setter
     def coda(self, value: str):
         value = value.lower()
@@ -229,7 +242,8 @@ class Syllable:
         if value in self.CODAS:
             if value == '':
                 if self.nucleus in self.OPEN_NUCLEI:
-                    raise ValueError(f"Open syllable (nucleus: {self.nucleus}) must have a coda")
+                    raise ValueError(
+                        f"Open syllable (nucleus: {self.nucleus}) must have a coda")
             elif (self.nucleus == 'uy' or (self.nucleus == 'y' and self.onset == 'qu')) and value not in {'c', 'ng', ''}:
                 pass
             elif self.nucleus in self.CLOSED_NUCLEI:
@@ -249,7 +263,7 @@ class Syllable:
     @property
     def tone(self) -> str:
         """The tone of the syllable.
-        
+
         The returned tone is denoted as the following:
         '': unmarked (ngang)
         '/': acute accent (sắc)
@@ -260,7 +274,7 @@ class Syllable:
         """
 
         return self._tone
-        
+
     @tone.setter
     def tone(self, value: str):
         if value in TONES:
@@ -275,18 +289,106 @@ class Syllable:
             self._tone = value
         else:
             raise ValueError(f"Invaild tone: {value}")
-    
+
     @property
     def vowel(self) -> str:
         """The vowel part of the syllable, including the semivowel if any."""
 
+        nucleus = self.nucleus
+        if not nucleus:
+            return ""
+        elif nucleus == 'yêu':
+            return 'iêu'
+        elif nucleus == 'yê':
+            return 'iê'
+
         if self.onset == 'qu':
-            return 'u' + self.nucleus
+            if nucleus[0] in {'a', 'ă', 'e'}:
+                return 'o' + self.nucleus
+            else:
+                return 'u' + self.nucleus
+        elif nucleus == 'y':
+            return 'i'
         else:
             return self.nucleus
-        
+
     @property
     def rime(self) -> str:
         """The rime of the syllable, which is the combination of the vowel and the coda."""
 
         return self.vowel + self.coda
+
+    @property
+    def has_semivowel(self) -> bool:
+        """Check whether the syllable has a semivowel or on-glide or not."""
+        return (self.onset == 'qu') or (self.nucleus in self.ROUNDED_DIPHTHONGS)
+
+    @property
+    def has_even_tone(self) -> bool:
+        """Check whether the syllable's tone is even (not oblique) or not."""
+        return is_even_tone(self.tone)
+
+    @property
+    def has_oblique_tone(self) -> bool:
+        """Check whether the syllable's tone is oblique (uneven) or not."""
+        return not self.has_even_tone
+
+    @staticmethod
+    def _check_rime_groups_exact(rime1: str, rime2: str, rime_groups: Iterable[Set[str]]) -> bool:
+        for rimes in rime_groups:
+            if (rime1 in rimes) and (rime2 in rimes):
+                return True
+        return False
+
+    def is_rhyme_with(self, other: Union[Syllable, str]) -> bool:
+        """Check whether a syllable rhymes with another syllable or not. Beside exact rime matching,
+        this method uses pre-defined rules for detecting similar rimes.
+
+        Similar-rime rules are based on https://bentinhyeu.forumvi.com/t10-topic and https://hoaanhdao0603082010.violet.vn/entry/van-trong-tho-12076153.html ."""
+        if isinstance(other, str):
+            other = Syllable.from_string(other)
+
+        self_rime = self.rime
+        other_rime = other.rime
+        if self_rime == other_rime:
+            return True
+
+        if Syllable._check_rime_groups_exact(self_rime, other_rime, (
+            {'a', 'ơ'},
+            {'ư', 'ơ'},
+            {'e', 'ê', 'i'},
+            {'o', 'ô', 'u'},
+            {'ai', 'ay', 'ây'},
+            {'ai', 'oi', 'ôi', 'ơi', 'ươi', 'ui'},
+            {'ao', 'au'},
+            {'âu', 'au'},
+            {'ao', 'eo', 'êu', 'iêu', 'iu', 'ưu'},
+            {'am', 'ơm'},
+            {'ăm', 'âm'},
+            {'em', 'êm', 'im'},
+            {'an', 'ơn'},
+            {'on', 'un'},
+            {'ăn', 'ân', 'uân'},
+            {'en', 'in', 'iên', 'uyên'},
+            {'on', 'ôn', 'uôn', },
+            {'ang', 'ương', },
+            {'uông', 'ương', },
+            {'ăng', 'âng', 'ưng'},
+            {'ong', 'ông', 'ung'},
+            {'anh', 'ênh', 'inh', 'oanh', 'uynh'},
+        )):
+            return True
+        elif self.has_oblique_tone and other.has_oblique_tone and \
+                Syllable._check_rime_groups_exact(self_rime, other_rime, (
+                    {'o', 'ua'},
+                    {'ia', 'uê'},
+                    {'ac', 'ươc'},
+                    {'âc', 'ưc'},
+                    {'at', 'ưt'},
+                    {'ât', 'ăt'},
+                    {'it', 'uyêt'},
+                    {'ut', 'uôt'},
+                )):
+            return True
+        else:
+            return False

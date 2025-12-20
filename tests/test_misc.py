@@ -93,24 +93,29 @@ BẰNG PHÔI CHUẨN SOI RỌI THOẢI MÁI
 💥 Hỗ trợ không cần đi thi, có người thi hộ và bao đậu
 💥 Miễn phí giao hàng tận tay"""
 
-    assert(normalize_confusables("""ʜỗ ᴛʀợ ʟàᴍ ɢɪấʏ ᴘʜéᴘ ʟáɪ xᴇ ᴋʜôɴɢ ᴄầɴ đɪ ᴛʜɪ- sẽ ᴄó ɴʜâɴ ᴠɪêɴ ᴛʜɪ ʜộ 
-Ưᴜ ᴛɪêɴ ᴄʜᴏ ᴄôɴɢ ɴʜâɴ, ɴɢườɪ ᴋʜôɴɢ ᴄó ᴛʜờɪ ɢɪᴀɴ ᴛʜɪ 
-#ʙʟx xᴇ ᴍáʏ: ᴀ𝟷, ᴀ𝟸, ᴀ𝟹 
-Ô ᴛô : ʙ𝟷, ʙ𝟸 , ᴄ, ᴅ, ᴇ, ғᴄ,... 
-ʙằɴ.ɢ ᴄᴏ́ ʜồ sơ ɢốᴄ ʜợᴘ ʟệ, ᴅùɴɢ ᴘʜầɴ ᴍềᴍ ᴄʜᴜʏêɴ ᴅụɴɢ để ǫᴜéᴛ 
-ᴍã ǫʀ ᴋɪểᴍ ᴛʀᴀ ᴛʜậᴛ ɢɪả 
-ᴄó ɴɢườɪ ᴛʜɪ ʜộ ᴛừ ᴀ-ᴢ 
-Đượᴄ ᴋɪểᴍ ᴛʀᴀ ᴛʀướᴄ ᴋʜɪ ᴛʜᴀɴʜ ᴛᴏáɴ - ᴅùɴɢ ᴘʜầɴ ᴍềᴍ ᴄʜᴜʏêɴ ᴅụɴɢ ᴋɪểᴍ ᴛʀᴀ 
-ᴋʜôɴɢ ɴʜậɴ ᴄọᴄ- ᴋʜôɴɢ ᴛʜᴜ ᴘʜụ ᴘʜí 
+    assert(normalize_confusables("""ʜỗ ᴛʀợ ʟàᴍ ɢɪấʏ ᴘʜéᴘ ʟáɪ xᴇ ᴋʜôɴɢ ᴄầɴ đɪ ᴛʜɪ- sẽ ᴄó ɴʜâɴ ᴠɪêɴ ᴛʜɪ ʜộ
+Ưᴜ ᴛɪêɴ ᴄʜᴏ ᴄôɴɢ ɴʜâɴ, ɴɢườɪ ᴋʜôɴɢ ᴄó ᴛʜờɪ ɢɪᴀɴ ᴛʜɪ
+#ʙʟx xᴇ ᴍáʏ: ᴀ𝟷, ᴀ𝟸, ᴀ𝟹
+Ô ᴛô : ʙ𝟷, ʙ𝟸 , ᴄ, ᴅ, ᴇ, ғᴄ,...
+ʙằɴ.ɢ ᴄᴏ́ ʜồ sơ ɢốᴄ ʜợᴘ ʟệ, ᴅùɴɢ ᴘʜầɴ ᴍềᴍ ᴄʜᴜʏêɴ ᴅụɴɢ để ǫᴜéᴛ
+ᴍã ǫʀ ᴋɪểᴍ ᴛʀᴀ ᴛʜậᴛ ɢɪả
+ᴄó ɴɢườɪ ᴛʜɪ ʜộ ᴛừ ᴀ-ᴢ
+Đượᴄ ᴋɪểᴍ ᴛʀᴀ ᴛʀướᴄ ᴋʜɪ ᴛʜᴀɴʜ ᴛᴏáɴ - ᴅùɴɢ ᴘʜầɴ ᴍềᴍ ᴄʜᴜʏêɴ ᴅụɴɢ ᴋɪểᴍ ᴛʀᴀ
+ᴋʜôɴɢ ɴʜậɴ ᴄọᴄ- ᴋʜôɴɢ ᴛʜᴜ ᴘʜụ ᴘʜí
 ᴍɪễɴ ᴘʜí ɢɪᴀᴏ ʙ.ằ.ɴɢ ᴛᴏàɴ ǫᴜốᴄ
-""") == """hỗ trợ làm giấy phép lái xe không cần đi thi- sẽ có nhân viên thi hộ 
-Ưu tiên cho công nhân, người không có thời gian thi 
-#blx xe máy: a1, a2, a3 
-Ô tô : b1, b2 , c, d, e, ғc,... 
-bằn.g có hồ sơ gốc hợp lệ, dùng phần mềm chuyên dụng để ǫuét
-mã qr kiểm tra thật giả""")
-
-print(normalize_confusables("""Dịch Vụ 𝘽ằng Cấp 
+""") == """hỗ trợ làm giấy phép lái xe không cần đi thi- sẽ có nhân viên thi hộ
+Ưu tiên cho công nhân, người không có thời gian thi
+#blx xe máy: a1, a2, a3
+Ô tô : b1, b2 , c, d, e, fc,...
+bằn.g có hồ sơ gốc hợp lệ, dùng phần mềm chuyên dụng để quét
+mã qr kiểm tra thật giả
+có người thi hộ từ a-z
+Được kiểm tra trước khi thanh toán - dùng phần mềm chuyên dụng kiểm tra
+không nhận cọc- không thu phụ phí
+miễn phí giao b.ằ.ng toàn quốc
+""")
+    
+    assert normalize_confusables("""Dịch Vụ 𝘽ằng Cấp 
 ☑️ Tất cả các trường học trên toàn quốc. 
 - Đ𝑎̣𝑖 𝐻𝑜̣𝑐 
 - 𝐶𝑎𝑜 Đ𝑎̆̉𝑛𝑔 
@@ -121,4 +126,15 @@ print(normalize_confusables("""Dịch Vụ 𝘽ằng Cấp
 - Bao công chứng toàn quốc 
 - Bao xin việc, nhập học, xuất khẩu lao động.
 💥 KIỂM TRA OK MỚI THANH TOÁN TIỀN 💥
-"""))
+""") == """Dịch Vụ Bằng Cấp 
+☑️ Tất cả các trường học trên toàn quốc. 
+- Đại Học 
+- Cao Đẳng 
+- Trung Cấp 
+- Cấp 3 - THPT - THCS
+👍 Giao Hàng Tận Nơi - #Không_Cần_Đặt_Cọc 
+- Tem - Mộc - Chữ Ký chuẩn B.G.D 
+- Bao công chứng toàn quốc 
+- Bao xin việc, nhập học, xuất khẩu lao động.
+💥 KIỂM TRA 0K MỚI THANH T0ÁN TIỀN 💥
+"""

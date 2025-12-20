@@ -125,3 +125,6 @@ def separate_tone(text: str, all=False):
             break
     
     return (text, tone)
+
+def is_even_tone(tone: str) -> bool:
+    return tone in {'', '\\'}

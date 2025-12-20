@@ -28,19 +28,18 @@ def test_from_string():
     assert Syllable.from_string('mía') == Syllable('m', 'ia', '', '/')
     assert Syllable.from_string('yểng') == Syllable('', 'yê', 'ng', '?')
     assert Syllable.from_string('iêu') == Syllable('', 'iêu', '', '')
-    assert Syllable.from_string('quà') == Syllable('qu', 'a', '', '\\')
+    assert Syllable.from_string('quà') == Syllable('qu', 'oa', '', '\\')
     assert Syllable.from_string('loá') == Syllable('l', 'oa', '', '/')
-    assert Syllable.from_string('quện') == Syllable('qu', 'ê', 'n', '.')
+    assert Syllable.from_string('quện') == Syllable('qu', 'uê', 'n', '.')
     assert Syllable.from_string('thuở') == Syllable('th', 'uơ', '', '?')
     assert Syllable.from_string('ế') == Syllable('', 'ê', '', '/')
     assert Syllable.from_string('Huỳnh') == Syllable('h', 'uy', 'nh', '\\')
     assert Syllable.from_string('tuýp') == Syllable('t', 'uy', 'p', '/')
-    assert Syllable.from_string('quớt') == Syllable('qu', 'ơ', 't', '/')
+    assert Syllable.from_string('quớt') == Syllable('qu', 'uơ', 't', '/')
     assert Syllable.from_string('bôông') == Syllable('b', 'ôô', 'ng', '')
     assert Syllable.from_string('uầy') == Syllable('', 'uây', '', '\\')
     assert Syllable.from_string('guyn') == Syllable('g', 'uy', 'n', '')
     assert Syllable.from_string('guyu') == Syllable('g', 'uyu', '', '')
-    assert Syllable.from_string('thuở') == Syllable('th', 'uơ', '', '?')
     
 def test_from_string_AUTO_CORRECT_disabled():
     Syllable.AUTO_CORRECT = False
@@ -6747,32 +6746,75 @@ def test_vowel():
     assert Syllable.from_string('sáu').vowel == 'au'
     assert Syllable.from_string('long').vowel == 'o'
     assert Syllable.from_string('niềng').vowel == 'iê'
+    assert Syllable.from_string('mía').vowel == 'ia'
     assert Syllable.from_string('xoắn').vowel == 'oă'
     assert Syllable.from_string('huệ').vowel == 'uê'
+    assert Syllable.from_string('quê').vowel == 'uê'
+    assert Syllable.from_string('què').vowel == 'oe'
     assert Syllable.from_string('gia').vowel == 'a'
     assert Syllable.from_string('gìn').vowel == 'i'
     assert Syllable.from_string('giặc').vowel == 'ă'
-    assert Syllable.from_string('yếu').vowel == 'yêu'
+    assert Syllable.from_string('yếu').vowel == 'iêu'
+    assert Syllable.from_string('yểng').vowel == 'iê'
     assert Syllable.from_string('điêu').vowel == 'iêu'
-    assert Syllable.from_string('quẳng').vowel == 'uă'
+    assert Syllable.from_string('quẳng').vowel == 'oă'
     assert Syllable.from_string('gì').vowel == 'i'
-    assert Syllable.from_string('quan').vowel == 'ua'
+    assert Syllable.from_string('ký').vowel == 'i'
+    assert Syllable.from_string('quan').vowel == 'oa'
     assert Syllable.from_string('của').vowel == 'ua'
-    assert Syllable.from_string('quay').vowel == 'uay'
+    assert Syllable.from_string('quay').vowel == 'oay'
     assert Syllable.from_string('quýu').vowel == 'uyu'
     assert Syllable.from_string('phuỷu').vowel == 'uyu'
-    assert Syllable.from_string('quái').vowel == 'uai'
+    assert Syllable.from_string('quái').vowel == 'oai'
     assert Syllable.from_string('khoái').vowel == 'oai'
+    assert Syllable.from_string('quốc').vowel == 'uô'
+    assert Syllable.from_string('coá').vowel == 'oa'
 
 def test_rime():
     assert Syllable.from_string('vần').rime == 'ân'
     assert Syllable.from_string('ruồi').rime == 'uôi'
     assert Syllable.from_string('mẹ').rime == 'e'
     assert Syllable.from_string('nghiêng').rime == 'iêng'
-    assert Syllable.from_string('yêu').rime == 'yêu'
+    assert Syllable.from_string('yêu').rime == 'iêu'
     assert Syllable.from_string('liêm').rime == 'iêm'
     assert Syllable.from_string('giá').rime == 'a'
     assert Syllable.from_string('ghen').rime == 'en'
     assert Syllable.from_string('quýnh').rime == 'uynh'
     assert Syllable.from_string('xiêu').rime == 'iêu'
     assert Syllable.from_string('moóc').rime == 'ooc'
+    assert Syllable.from_string('quầng').rime == 'uâng'
+    assert Syllable.from_string('quàng').rime == 'oang'
+
+def test_has_semivowel():
+    assert Syllable.from_string('choá').has_semivowel
+    assert Syllable.from_string('quèn').has_semivowel
+    assert Syllable.from_string('phuê').has_semivowel
+    assert Syllable.from_string('khoẻ').has_semivowel
+    assert not Syllable.from_string('không').has_semivowel
+    assert not Syllable.from_string('chúa').has_semivowel
+
+def test_is_rhyme_with():
+    assert Syllable.from_string('riêng').is_rhyme_with('riềng')
+    assert Syllable.from_string('nhà').is_rhyme_with('mơ')
+    assert Syllable.from_string('đem').is_rhyme_with('đêm')
+    assert Syllable.from_string('chút').is_rhyme_with('ruột')
+    assert Syllable.from_string('chó').is_rhyme_with('sủa')
+    assert not Syllable.from_string('cho').is_rhyme_with('sủa')
+    assert not Syllable.from_string('hả').is_rhyme_with('lốp')
+
+def test_change_onset():
+    syll1 = Syllable.from_string('tôi')
+    syll1.onset = 'ngh'
+    assert syll1.onset == 'ng'
+    assert syll1 == 'ngôi'
+    syll1.onset = ''
+    assert syll1.onset == ''
+    assert syll1 == 'ôi'
+
+    syll2 = Syllable.from_string('goá')
+    syll2.onset = 'c'
+    assert syll2.onset == 'c'
+    assert syll2 == 'coá'
+    syll2.onset = 'qu'
+    assert syll2.onset == 'qu'
+    assert str(syll2) == 'quá'
