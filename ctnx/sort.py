@@ -1,36 +1,66 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import annotations
+from typing import List, Iterable
 
-from .constants import CHAR_ORDER_DICT
+from .constants import ALPHABET, CHAR_ORDER_DICT, DEFAULT_TONE_ORDER, VOWEL_TONE_TO_CHAR
 
+class ViCollator:
+    """Vietnamese-aware class for generating sorting key for use with the `key` parameter
+    in  :py:func:`sorted` and  :py:meth:`list.sort` functions.
 
-class ViSortKey:
-    """Vietnamese-aware sorting key class for use with the `key` parameter
-    in  :py:func:`sorted` and  :py:meth:`list.sort` functions."""
+    To get the default collator key, use `syllable.default_vi_collator`
 
-    def __init__(self, string=''):
-        self.string = string
+    :param tone_order: A sequence of tone marks defining the sort order for vowels. 
+                       Defaults to ``('', '/', '\\', '?', '~', '.')``.
+    :type tone_order: Iterable
+    """
+    
+    def __init__(self, tone_order: Iterable = DEFAULT_TONE_ORDER) -> None:
+        self.tone_order = tone_order
 
-    def __repr__(self):
-        return f"<ViSortKey '{self.string}'>"
+        index = 0
+        mapping = {}
 
-    def __lt__(self, other: ViSortKey):
-        d = CHAR_ORDER_DICT
-        self_str = self.string
-        other_str = other.string
-        while True:
-            if (self_str == '') or (other_str == ''):
-                return len(self_str) < len(other_str)
-            
-            self_first = self_str[0]
-            other_first = other_str[0]
+        def add_char(ch: str, is_upper: bool):
+            nonlocal index, mapping
+            if is_upper:
+                ch = ch.upper()
+            mapping[ch] = index
+            index += 1
 
-            if self_first != other_first:
-                if (self_first in d) and (other_first in d):
-                    return d[self_first] < d[other_first]
+        def make_case_group(start_letter, is_upper):
+            nonlocal index
+            index = ord(start_letter)
+            for letter in ALPHABET:
+                if letter in VOWEL_TONE_TO_CHAR:
+                    for tone in tone_order:
+                        add_char(VOWEL_TONE_TO_CHAR[letter][tone], is_upper)
                 else:
-                    return self_first < other_first
-            
-            self_str = self_str[1:]
-            other_str = other_str[1:]
+                    add_char(letter, is_upper)
+
+        for i in range(ord('A')):
+            add_char(chr(i), False)
+        make_case_group('A', True)
+        for ch in "[\\]^_`":
+            add_char(ch, False)
+        make_case_group('a', False)
+        self.mapping = mapping
+        self.last_map_index = index - 1
+
+    def key(self, text: str) -> List[int]:
+        key = []
+        _append = key.append
+        mapping = self.mapping 
+        offset = self.last_map_index
+        
+        for ch in text:
+            try:
+                _append(mapping[ch])
+            except KeyError:
+                _append(ord(ch) + offset)
+                
+        return key
+
+vi_collator = ViCollator()
+vi_sort_key = vi_collator.key

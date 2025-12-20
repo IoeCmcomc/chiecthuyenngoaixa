@@ -2,7 +2,7 @@
 
 import pytest
 
-from ctnx.syllable import Syllable, NewStyleTonePlacer
+from ctnx.syllable import Syllable, NewStyleTonePlacer, OldStyleTonePlacer
 
 to_string_dataset = "Do bạch kim rất quý sẽ để lắp vô xương".split()
 
@@ -38,6 +38,9 @@ def test_from_string():
     assert Syllable.from_string('quớt') == Syllable('qu', 'ơ', 't', '/')
     assert Syllable.from_string('bôông') == Syllable('b', 'ôô', 'ng', '')
     assert Syllable.from_string('uầy') == Syllable('', 'uây', '', '\\')
+    assert Syllable.from_string('guyn') == Syllable('g', 'uy', 'n', '')
+    assert Syllable.from_string('guyu') == Syllable('g', 'uyu', '', '')
+    assert Syllable.from_string('thuở') == Syllable('th', 'uơ', '', '?')
     
 def test_from_string_AUTO_CORRECT_disabled():
     Syllable.AUTO_CORRECT = False
@@ -53,6 +56,22 @@ def test_to_string():
     assert str(Syllable.from_string('gìn')) == 'gìn'
     assert str(Syllable.from_string('quyú')) == 'quýu'
     assert str(Syllable.from_string('bôồng')) == 'bôồng'
+    assert str(Syllable.from_string('nưã')) == 'nữa'
+
+def test_old_style_tone_placement():
+    Syllable.tone_placer = OldStyleTonePlacer
+    assert str(Syllable.from_string('Hoá')) == 'hóa'
+    assert str(Syllable.from_string('giếng')) == 'giếng'
+    assert str(Syllable.from_string('nhẹ')) == 'nhẹ'
+    assert str(Syllable.from_string('gìn')) == 'gìn'
+    assert str(Syllable.from_string('thuế')) == 'thuế'
+    assert str(Syllable.from_string('bôồng')) == 'bôồng'
+    assert str(Syllable.from_string('xoè')) == 'xòe'
+    assert str(Syllable.from_string('huỷ')) == 'hủy'
+    assert str(Syllable.from_string('quả')) == 'quả'
+    assert str(Syllable.from_string('của')) == 'của'
+    assert str(Syllable.from_string('thuở')) == 'thuở'
+    Syllable.tone_placer = NewStyleTonePlacer
 
 @pytest.mark.parametrize("string", to_string_dataset)
 def test_to_string_batch(string):
@@ -6744,3 +6763,16 @@ def test_vowel():
     assert Syllable.from_string('phuỷu').vowel == 'uyu'
     assert Syllable.from_string('quái').vowel == 'uai'
     assert Syllable.from_string('khoái').vowel == 'oai'
+
+def test_rime():
+    assert Syllable.from_string('vần').rime == 'ân'
+    assert Syllable.from_string('ruồi').rime == 'uôi'
+    assert Syllable.from_string('mẹ').rime == 'e'
+    assert Syllable.from_string('nghiêng').rime == 'iêng'
+    assert Syllable.from_string('yêu').rime == 'yêu'
+    assert Syllable.from_string('liêm').rime == 'iêm'
+    assert Syllable.from_string('giá').rime == 'a'
+    assert Syllable.from_string('ghen').rime == 'en'
+    assert Syllable.from_string('quýnh').rime == 'uynh'
+    assert Syllable.from_string('xiêu').rime == 'iêu'
+    assert Syllable.from_string('moóc').rime == 'ooc'

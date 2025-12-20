@@ -71,7 +71,7 @@ class Syllable:
     ONSETS = ('b', 'ch', 'c', 'd', 'đ', 'gh', 'gi', 'g', 'h', 'kh', 'k', 'l', 'm', 'ngh', 'ng', 'nh', 'ng',
     'n', 'ph', 'p', 'qu', 'r', 's', 'th', 'tr', 't', 'v', 'x', '')
     MONOPHTHONGS = ('a', 'ă', 'â', 'e', 'ê', 'i', 'o', 'ô', 'ơ', 'u', 'ư', 'y')
-    # 'oo' and 'ôô' are not a diphthong but it's denoted using two characters
+    # 'oo' and 'ôô' are not diphthongs but they're denoted using two characters
     OPEN_DIPHTHONGS = ('iê', 'oă', 'oo', 'ôô', 'uâ', 'uô', 'ươ', 'yê')
     ROUNDED_DIPHTHONGS = ('oa', 'oe', 'uê')
     CLOSED_DIPHTHONGS = ('ai', 'ao', 'au', 'ay', 'âu', 'ây', 'eo', 'êu', 'ia', 'iu', 'oi',
