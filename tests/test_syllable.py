@@ -6786,12 +6786,12 @@ def test_rime():
     assert Syllable.from_string('quàng').rime == 'oang'
 
 def test_has_semivowel():
-    assert Syllable.from_string('choá').has_semivowel
-    assert Syllable.from_string('quèn').has_semivowel
-    assert Syllable.from_string('phuê').has_semivowel
-    assert Syllable.from_string('khoẻ').has_semivowel
-    assert not Syllable.from_string('không').has_semivowel
-    assert not Syllable.from_string('chúa').has_semivowel
+    assert Syllable.from_string('choá').has_w_semivowel
+    assert Syllable.from_string('quèn').has_w_semivowel
+    assert Syllable.from_string('phuê').has_w_semivowel
+    assert Syllable.from_string('khoẻ').has_w_semivowel
+    assert not Syllable.from_string('không').has_w_semivowel
+    assert not Syllable.from_string('múa').has_w_semivowel
 
 def test_is_rhyme_with():
     assert Syllable.from_string('riêng').is_rhyme_with('riềng')
@@ -6817,4 +6817,19 @@ def test_change_onset():
     assert syll2 == 'coá'
     syll2.onset = 'qu'
     assert syll2.onset == 'qu'
-    assert str(syll2) == 'quá'
+    assert syll2.vowel == 'oa'
+    assert syll2.nucleus == 'a'
+    assert syll2 == 'quá'
+    syll2.onset = 'kh'
+    assert syll2.onset == 'kh'
+    assert syll2 == 'khoá'
+
+    syll3 = Syllable.from_string('nhỏ')
+    syll3.onset = 'qu'
+    assert syll3.onset == 'c'
+    assert syll3 == 'cỏ'
+
+def test_change_nucleus():
+    syll1 = Syllable.from_string('tanh')
+    syll1.nucleus = 'ă'
+    assert syll1 == 'mào'

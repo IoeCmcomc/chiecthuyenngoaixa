@@ -77,18 +77,21 @@ class Syllable:
               'n', 'ph', 'p', 'qu', 'r', 's', 'th', 'tr', 't', 'v', 'x', '')
     MONOPHTHONGS = ('a', 'ă', 'â', 'e', 'ê', 'i', 'o', 'ô', 'ơ', 'u', 'ư', 'y')
     # 'oo' and 'ôô' are not diphthongs but they're denoted using two characters
-    OPEN_DIPHTHONGS = ('iê', 'oă', 'oo', 'ôô', 'uâ', 'uô', 'ươ', 'yê')
-    ROUNDED_DIPHTHONGS = ('oa', 'oe', 'uê')
+    OPEN_DIPHTHONGS = ('iê', 'oo', 'ôô', 'uâ', 'uô', 'ươ', 'yê')
+    CLOSEABLE_DIPHTHONGS = ('oa', 'oă', 'oe', 'uê', 'uy')
     CLOSED_DIPHTHONGS = ('ai', 'ao', 'au', 'ay', 'âu', 'ây', 'eo', 'êu', 'ia', 'iu', 'oi',
-                         'ôi', 'ơi', 'ua', 'ui', 'uơ', 'uy', 'ưa', 'ưi', 'ưu', 'yu')
-    DIPHTHONGS = OPEN_DIPHTHONGS + ROUNDED_DIPHTHONGS + CLOSED_DIPHTHONGS
+                         'ôi', 'ơi', 'ua', 'ui', 'uơ', 'ưa', 'ưi', 'ưu', 'yu')
+    ROUNDED_DIPHTHONGS = ('oa', 'oă', 'uâ', 'oe', 'uê', 'uơ', 'uy')
+    DIPHTHONGS = OPEN_DIPHTHONGS + CLOSEABLE_DIPHTHONGS + CLOSED_DIPHTHONGS
     CLOSED_TRIPHTHONGS = ('iêu', 'oai', 'oao', 'oay', 'oeo',
                           'uay', 'uây', 'uôi', 'uya', 'uyu', 'ươi', 'ươu', 'yêu')
     OPEN_TRIPHTHONGS = ('uyê',)
+    ROUNDED_TRIPHTHONGS = ('oai', 'oao', 'oay', 'oeo', 'uay', 'uây', 'uya', 'uyu')
     TRIPHTHONGS = CLOSED_TRIPHTHONGS + OPEN_TRIPHTHONGS
     OPEN_NUCLEI = OPEN_TRIPHTHONGS + OPEN_DIPHTHONGS
     CLOSED_NUCLEI = CLOSED_TRIPHTHONGS + CLOSED_DIPHTHONGS
     NUCLEI = TRIPHTHONGS + DIPHTHONGS + MONOPHTHONGS
+    ROUNDED_NUCLEI = set(ROUNDED_TRIPHTHONGS + ROUNDED_DIPHTHONGS)
     CODAS = ('ch', 'c', 'm', 'ng', 'nh', 'n', 'p', 't', '')
 
     AUTO_CORRECT: bool = True
@@ -187,12 +190,15 @@ class Syllable:
                 elif value in {'c', 'k'}:
                     value = 'k' if (self.nucleus[0] in {
                                     'e', 'ê', 'i', 'y'}) else 'c'
-                elif value == 'q':
-                    nucleusChars = list(self.nucleus)
-                    print(nucleusChars)
-                    if nucleusChars[0] != 'u':
-                        nucleusChars[0] = 'u'
-                        self.nucleus = ''.join(nucleusChars)
+                elif self.has_w_semivowel:
+                    if value == 'qu':
+                        self.nucleus = self.nucleus[1:]
+                    else:
+                        self._apply_w_semivowel_for_non_qu()
+                elif value == 'qu':
+                    value = 'k' if (self.nucleus[0] in {
+                                    'e', 'ê', 'i', 'y'}) else 'c'
+
             if not self.AUTO_CORRECT and (value != original):
                 raise ValueError(f"Invaild onset consonant: {original}")
             else:
@@ -216,12 +222,15 @@ class Syllable:
                 if self.onset in {'ng', 'ngh'}:
                     self.onset = 'ngh' if (
                         value[0] in {'e', 'ê', 'i'}) else 'ng'
-                elif self.onset in {'c', 'k', 'q'}:
+                elif self.onset in {'c', 'k'}:
                     if value[0] in {'e', 'ê', 'i', 'y'}:
                         self.onset = 'k'
                     elif value[0] != 'u':
                         self.onset = 'c'
-            if not self.AUTO_CORRECT and (self.onset != original_onset):
+                elif self.onset == 'qu':
+                    if value in self.ROUNDED_NUCLEI:
+                        value = value[1:]
+            if not self.AUTO_CORRECT and ((value != original) and (self.onset != original_onset)):
                 raise ValueError(f"Invaild nucleus: {original}")
             else:
                 self._nucleus = value
@@ -293,11 +302,9 @@ class Syllable:
     @property
     def vowel(self) -> str:
         """The vowel part of the syllable, including the semivowel if any."""
-
         nucleus = self.nucleus
-        if not nucleus:
-            return ""
-        elif nucleus == 'yêu':
+
+        if nucleus == 'yêu':
             return 'iêu'
         elif nucleus == 'yê':
             return 'iê'
@@ -319,9 +326,9 @@ class Syllable:
         return self.vowel + self.coda
 
     @property
-    def has_semivowel(self) -> bool:
+    def has_w_semivowel(self) -> bool:
         """Check whether the syllable has a semivowel or on-glide or not."""
-        return (self.onset == 'qu') or (self.nucleus in self.ROUNDED_DIPHTHONGS)
+        return (self.onset == 'qu') or (self.nucleus in self.ROUNDED_NUCLEI)
 
     @property
     def has_even_tone(self) -> bool:
@@ -392,3 +399,26 @@ class Syllable:
             return True
         else:
             return False
+
+    @property
+    def can_apply_w_semivowel(self):
+        return (self.onset != 'qu') and (self.vowel[0] in {'a', 'ă', 'â', 'e', 'ê', 'i', 'ơ', 'y'})
+    
+    def _apply_w_semivowel_for_non_qu(self):
+        if self.nucleus[0] in {'i', 'y'}:
+            self._nucleus = 'uy' + self.nucleus[1:]
+        elif self.nucleus[0] in {'a', 'ă', 'e'}:
+            self._nucleus = 'o' + self.nucleus
+        else: # â, ê, ơ
+            self._nucleus = 'u' + self.nucleus
+
+    def apply_w_semivowel(self) -> bool:
+        if not self.can_apply_w_semivowel:
+            return False
+        
+        if self.onset in {'c', 'k'}:
+            self.onset = 'qu'
+        else:
+            self._apply_w_semivowel_for_non_qu()
+        
+        return True
