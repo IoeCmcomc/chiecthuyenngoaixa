@@ -132,6 +132,9 @@ class Syllable:
         original = string
         onset = nucleus = coda = tone = ''
 
+        if string in {'gịa', 'gỵa'}:
+            return Syllable('gi', 'ia', '', '.')
+
         string, tone = separate_tone(string)
 
         onset = next(filter(string.startswith, cls.ONSETS))
@@ -164,7 +167,7 @@ class Syllable:
         nucleus = self.nucleus
         coda = self.coda
 
-        if (onset == 'gi') and ((nucleus == 'i') or (nucleus[:2] == 'iê')):
+        if (onset == 'gi') and ((nucleus == 'i') or (nucleus[:2] in {'iê', 'ia'})):
             onset = 'g'
 
         return ''.join((onset, self.tone_placer.place(self), coda))
