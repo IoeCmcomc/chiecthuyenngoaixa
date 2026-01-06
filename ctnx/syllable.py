@@ -99,10 +99,11 @@ class Syllable:
     tone_placer = NewStyleTonePlacer
 
     def __init__(self, onset: str, nucleus: str, coda: str, tone=''):
-        self.onset = onset
-        self.nucleus = nucleus
-        self.coda = coda
-        self.tone = tone
+        self._onset = onset
+        self._nucleus = nucleus
+        self._coda = coda
+        self._tone = tone
+        self.update(onset, nucleus, coda, tone)
 
     def __repr__(self):
         if self.tone:
@@ -168,6 +169,67 @@ class Syllable:
             onset = 'g'
 
         return ''.join((onset, self.tone_placer.place(self), coda))
+    
+    def update(self, onset: str, nucleus: str, coda: str, tone: str):
+        onset, nucleus, coda = onset.lower(), nucleus.lower(), coda.lower()
+        orig_onset, orig_nuclues, orig_coda, orig_tone = onset, nucleus, coda, tone
+        if nucleus not in self.NUCLEI:
+            ValueError(f"Invaild nucleus: {nucleus}")
+        elif onset not in self.ONSETS:
+            ValueError(f"Invaild onset: {onset}")
+        elif coda not in self.CODAS:
+            ValueError(f"Invaild coda: {coda}")
+        elif tone not in TONES:
+            ValueError(f"Invaild tone: '{tone}'")
+
+        if onset in {'ng', 'ngh'}:
+            onset = 'ngh' if (nucleus[0] in {'e', 'ê', 'i'}) else 'ng'
+        
+        if nucleus in self.ROUNDED_NUCLEI:
+            if onset == 'qu':
+                nucleus = nucleus[1:]
+            elif self.onset == 'qu': # from 'qu' to another
+                nucleus = self._apply_w_semivowel_for_non_qu(nucleus)
+        elif (self.onset == 'qu') and (onset != 'qu'):
+            if nucleus not in self.ROUNDED_NUCLEI:
+                nucleus = self._apply_w_semivowel_for_non_qu(nucleus)
+        elif (onset == 'qu') and (self.onset != 'qu'):
+            onset = 'c'
+
+        if onset in {'c', 'k'}:
+            onset = 'k' if nucleus[0] in {'e', 'ê', 'i', 'y'} else 'c'
+
+        if coda == '':
+            if nucleus in self.OPEN_NUCLEI:
+                raise ValueError(f"Open syllable (nucleus: {nucleus}) must have a coda")
+            elif nucleus in self.CLOSED_NUCLEI:
+                coda = ''
+            elif onset != 'qu':
+                if nucleus == 'y':
+                    if coda == 'ng':
+                        coda = 'nh'
+                    nucleus = 'i'
+
+        if (coda in {'c', 'p', 't'}) and not (tone in {'/', '.'}):
+                if tone in {'\\', '?'}:
+                    tone = '.'
+                if tone in {'', '~'}:
+                    tone = '/'
+        
+        if not self.AUTO_CORRECT:
+            if onset != orig_onset:
+                raise ValueError(f"Invaild onset consonant: {orig_onset}")
+            elif nucleus != orig_nuclues:
+                raise ValueError(f"Invaild nucleus: {orig_nuclues}")
+            elif coda != orig_coda:
+                raise ValueError(f"Invaild coda: {orig_coda}")
+            elif tone != orig_tone:
+                raise ValueError(f"Invaild tone: {orig_tone}")
+        
+        self._onset = onset
+        self._nucleus = nucleus
+        self._coda = coda
+        self._tone = tone
 
     @property
     def onset(self) -> str:
@@ -177,34 +239,7 @@ class Syllable:
 
     @onset.setter
     def onset(self, value: str):
-        value = value.lower()
-        original = value
-        if hasattr(self, "_onset"):
-            if value == self.onset:
-                return
-        if value in self.ONSETS:
-            if hasattr(self, "_nucleus"):
-                if value in {'ng', 'ngh'}:
-                    value = 'ngh' if (self.nucleus[0] in {
-                                      'e', 'ê', 'i'}) else 'ng'
-                elif value in {'c', 'k'}:
-                    value = 'k' if (self.nucleus[0] in {
-                                    'e', 'ê', 'i', 'y'}) else 'c'
-                elif self.has_w_semivowel:
-                    if value == 'qu':
-                        self.nucleus = self.nucleus[1:]
-                    else:
-                        self._apply_w_semivowel_for_non_qu()
-                elif value == 'qu':
-                    value = 'k' if (self.nucleus[0] in {
-                                    'e', 'ê', 'i', 'y'}) else 'c'
-
-            if not self.AUTO_CORRECT and (value != original):
-                raise ValueError(f"Invaild onset consonant: {original}")
-            else:
-                self._onset = value
-        else:
-            raise ValueError(f"Invaild onset: {value}")
+        self.update(value, self.nucleus, self.coda, self.tone)
 
     @property
     def nucleus(self) -> str:
@@ -214,28 +249,7 @@ class Syllable:
 
     @nucleus.setter
     def nucleus(self, value: str):
-        value = value.lower()
-        original = value
-        original_onset = self.onset
-        if value in self.NUCLEI:
-            if hasattr(self, "_onset"):
-                if self.onset in {'ng', 'ngh'}:
-                    self.onset = 'ngh' if (
-                        value[0] in {'e', 'ê', 'i'}) else 'ng'
-                elif self.onset in {'c', 'k'}:
-                    if value[0] in {'e', 'ê', 'i', 'y'}:
-                        self.onset = 'k'
-                    elif value[0] != 'u':
-                        self.onset = 'c'
-                elif self.onset == 'qu':
-                    if value in self.ROUNDED_NUCLEI:
-                        value = value[1:]
-            if not self.AUTO_CORRECT and ((value != original) and (self.onset != original_onset)):
-                raise ValueError(f"Invaild nucleus: {original}")
-            else:
-                self._nucleus = value
-        else:
-            raise ValueError(f"Invaild nucleus: {value}")
+        self.update(self.onset, value, self.coda, self.tone)
 
     @property
     def coda(self) -> str:
@@ -245,29 +259,7 @@ class Syllable:
 
     @coda.setter
     def coda(self, value: str):
-        value = value.lower()
-        original = value
-        original_nucleus = self.nucleus
-        if value in self.CODAS:
-            if value == '':
-                if self.nucleus in self.OPEN_NUCLEI:
-                    raise ValueError(
-                        f"Open syllable (nucleus: {self.nucleus}) must have a coda")
-            elif (self.nucleus == 'uy' or (self.nucleus == 'y' and self.onset == 'qu')) and value not in {'c', 'ng', ''}:
-                pass
-            elif self.nucleus in self.CLOSED_NUCLEI:
-                value = ''
-            else:
-                if self.nucleus == 'y':
-                    if value == 'ng':
-                        value = 'nh'
-                    self.nucleus = 'i'
-            if not self.AUTO_CORRECT and ((value != original) or (self.nucleus != original_nucleus)):
-                raise ValueError(f"Invaild coda: {original}")
-            else:
-                self._coda = value
-        else:
-            raise ValueError(f"Invaild coda: {value}")
+        self.update(self.onset, self.nucleus, value, self.tone)
 
     @property
     def tone(self) -> str:
@@ -286,18 +278,7 @@ class Syllable:
 
     @tone.setter
     def tone(self, value: str):
-        if value in TONES:
-            if hasattr(self, "_coda"):
-                if (self.coda in {'c', 'p', 't'}) and not (value in {'/', '.'}):
-                    if not self.AUTO_CORRECT:
-                        raise ValueError(f"Invaild tone: {value}")
-                    elif value in {'', '\\', '?'}:
-                        value = '.'
-                    elif value == '~':
-                        value = '/'
-            self._tone = value
-        else:
-            raise ValueError(f"Invaild tone: {value}")
+        self.update(self.onset, self.nucleus, self.coda, value)
 
     @property
     def vowel(self) -> str:
@@ -327,7 +308,7 @@ class Syllable:
 
     @property
     def has_w_semivowel(self) -> bool:
-        """Check whether the syllable has a semivowel or on-glide or not."""
+        """Check whether the syllable has a on-glide semivowel or not."""
         return (self.onset == 'qu') or (self.nucleus in self.ROUNDED_NUCLEI)
 
     @property
@@ -404,13 +385,15 @@ class Syllable:
     def can_apply_w_semivowel(self):
         return (self.onset != 'qu') and (self.vowel[0] in {'a', 'ă', 'â', 'e', 'ê', 'i', 'ơ', 'y'})
     
-    def _apply_w_semivowel_for_non_qu(self):
-        if self.nucleus[0] in {'i', 'y'}:
-            self._nucleus = 'uy' + self.nucleus[1:]
-        elif self.nucleus[0] in {'a', 'ă', 'e'}:
-            self._nucleus = 'o' + self.nucleus
+    @staticmethod
+    def _apply_w_semivowel_for_non_qu(nucleus):
+        if nucleus[0] in {'i', 'y'}:
+            nucleus = 'uy' + nucleus[1:]
+        elif nucleus[0] in {'a', 'ă', 'e'}:
+            nucleus = 'o' + nucleus
         else: # â, ê, ơ
-            self._nucleus = 'u' + self.nucleus
+            nucleus = 'u' + nucleus
+        return nucleus
 
     def apply_w_semivowel(self) -> bool:
         if not self.can_apply_w_semivowel:
@@ -419,6 +402,6 @@ class Syllable:
         if self.onset in {'c', 'k'}:
             self.onset = 'qu'
         else:
-            self._apply_w_semivowel_for_non_qu()
+            self.nucleus = self._apply_w_semivowel_for_non_qu(self.nucleus)
         
         return True

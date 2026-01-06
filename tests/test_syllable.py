@@ -49,6 +49,7 @@ def test_from_string_AUTO_CORRECT_disabled():
 
 def test_to_string():
     assert Syllable.tone_placer == NewStyleTonePlacer
+    assert str(Syllable.from_string('quý')) == 'quý'
     assert str(Syllable.from_string('Hóa')) == 'hoá'
     assert str(Syllable.from_string('giếng')) == 'giếng'
     assert str(Syllable.from_string('quýt')) == 'quýt'
@@ -6829,7 +6830,13 @@ def test_change_onset():
     assert syll3.onset == 'c'
     assert syll3 == 'cỏ'
 
-def test_change_nucleus():
-    syll1 = Syllable.from_string('tanh')
-    syll1.nucleus = 'ă'
-    assert syll1 == 'mào'
+def test_change_multiple():
+    syll = Syllable.from_string('văn')
+    assert syll.vowel == 'ă'
+    assert syll.coda == 'n'
+    assert syll.tone == ''
+    syll.update(onset=syll.onset, nucleus='e', coda='', tone='?')
+    assert syll.vowel == 'e'
+    assert syll.coda == ''
+    assert syll.tone == '?'
+    assert syll == 'vẻ'
