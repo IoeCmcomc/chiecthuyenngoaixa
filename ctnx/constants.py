@@ -34,6 +34,14 @@ VIETNAMESE_CHARSET_REGEX = re.compile(
 NO_TONE_CHAR_TRANS = str.maketrans("àáảãạằắẳẵặầấẩẫậèéẻẽẹềếểễệìíỉĩịòóỏõọồốổỗộờớởỡợùúủũụừứửữựỳýỷỹỵÀÁẢÃẠẰẮẲẴẶẦẤẨẪẬÈÉẺẼẸỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌỒỐỔỖỘỜỚỞỠỢÙÚỦŨỤỪỨỬỮỰỲÝỶỸỴ",
                                    "aaaaaăăăăăâââââeeeeeêêêêêiiiiioooooôôôôôơơơơơuuuuuưưưưưyyyyyAAAAAĂĂĂĂĂÂÂÂÂÂEEEEEÊÊÊÊÊIIIIIOOOOOÔÔÔÔÔƠƠƠƠƠUUUUUƯƯƯƯƯYYYYY")
 
+BASE_TONE_PLACEMENT_REPLACE_PAIRS = [
+    ('òa', 'oà'), ('óa', 'oá'), ('ỏa', 'oả'), ('õa', 'oã'), ('ọa', 'oạ'),
+    ('òe', 'oè'), ('óe', 'oé'), ('ỏe', 'oẻ'), ('õe', 'oẽ'), ('ọe', 'oẹ'),
+    ('ùy', 'uỳ'), ('úy', 'uý'), ('ủy', 'uỷ'), ('ũy', 'uỹ'), ('ụy', 'uỵ'),
+    ('òo', 'oò'), ('óo', 'oó'), ('ỏo', 'oỏ'), ('õo', 'oõ'), ('ọo', 'oọ'),
+    ('ồô', 'ôồ'), ('ốô', 'ôố'), ('ổô', 'ôổ'), ('ỗô', 'ôỗ'), ('ộô', 'ôộ'), 
+]
+
 # The following confusable characters are extracted and modified 
 # from a subset of Unicode 15.1 confusables:
 # https://www.unicode.org/Public/security/15.1.0/confusables.txt

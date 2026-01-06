@@ -56,6 +56,7 @@ def test_to_string():
     assert str(Syllable.from_string('gìn')) == 'gìn'
     assert str(Syllable.from_string('quyú')) == 'quýu'
     assert str(Syllable.from_string('bôồng')) == 'bôồng'
+    assert str(Syllable.from_string('moóc')) == 'moóc'
     assert str(Syllable.from_string('nưã')) == 'nữa'
 
 def test_old_style_tone_placement():
@@ -65,7 +66,8 @@ def test_old_style_tone_placement():
     assert str(Syllable.from_string('nhẹ')) == 'nhẹ'
     assert str(Syllable.from_string('gìn')) == 'gìn'
     assert str(Syllable.from_string('thuế')) == 'thuế'
-    assert str(Syllable.from_string('bôồng')) == 'bôồng'
+    assert str(Syllable.from_string('bôồng')) == 'bồông'
+    assert str(Syllable.from_string('moóc')) == 'móoc'
     assert str(Syllable.from_string('xoè')) == 'xòe'
     assert str(Syllable.from_string('huỷ')) == 'hủy'
     assert str(Syllable.from_string('quả')) == 'quả'

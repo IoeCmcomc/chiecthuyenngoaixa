@@ -10,7 +10,6 @@ from functools import lru_cache
 from .constants import TONES, TONE_NAMES
 from .misc import normalize, separate_tone, is_even_tone
 
-
 class TonePlacer(ABC):
     """Controls tone mark placements."""
 
@@ -64,7 +63,7 @@ class NewStyleTonePlacer(TonePlacer):
 class OldStyleTonePlacer(NewStyleTonePlacer):
     @classmethod
     def placement_index(cls, syllable: Syllable):
-        if (syllable.nucleus in {'oa', 'oe', 'uy'}) and (syllable.coda == ''):
+        if (syllable.nucleus in {'oo', 'ôô'}) or (syllable.rime in {'oa', 'oe', 'uy'}):
             return 0
         else:
             return super().placement_index(syllable)

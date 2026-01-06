@@ -2,8 +2,9 @@
 
 from unicodedata import name as unicode_name, lookup as unicode_lookup, normalize as unicode_normalize
 from functools import lru_cache
+from re import compile as re_compile, escape as re_escape, IGNORECASE as re_IGNORECASE
 
-from .constants import TONES, TONE_NAMES, NO_TONE_CHAR_TRANS, CONFUSABLE_CHAR_TRANS
+from .constants import TONES, TONE_NAMES, NO_TONE_CHAR_TRANS, CONFUSABLE_CHAR_TRANS, BASE_TONE_PLACEMENT_REPLACE_PAIRS
 
 def normalize_confusables(text: str) -> str:
     """Converts a confusable text to a potentially normal text.
@@ -128,3 +129,98 @@ def separate_tone(text: str, all=False):
 
 def is_even_tone(tone: str) -> bool:
     return tone in {'', '\\'}
+
+class DictBasedOnePassStrReplacer:
+    def __init__(self, dictionary: dict, use_atomic_group=False, case_sensitive=True, word_boundary='') -> None:
+        self.use_atomic_group = use_atomic_group
+        self.case_sensitive = case_sensitive
+        self.dictionary = dictionary
+        regex_string = self._build_trie_regex_str(dictionary)
+        if word_boundary == r'\b':
+            regex_string = word_boundary + regex_string + word_boundary
+        elif word_boundary:
+            regex_string = rf"(?<!{word_boundary})" + regex_string + rf"(?!{word_boundary})"
+        if case_sensitive:
+            self.regex = re_compile(regex_string)
+        else:
+            self.regex = re_compile(regex_string, re_IGNORECASE)
+
+    def _build_trie_regex_str(self, dictionary: dict):
+        return self._trie_to_regex_str(self._make_trie(list(dictionary.keys())))
+
+    @classmethod
+    def _make_trie(cls, strings: list) -> dict:
+        full_trie = {}
+        for string in strings:
+            trie = full_trie
+            for ch in string:
+                if not (ch in trie):
+                    trie[ch] = {}
+                trie = trie[ch]
+            trie['\0'] = None
+        return full_trie
+
+    @classmethod
+    def _escape(cls, s: str) -> str:
+        return re_escape(s.replace('/', r"\/")).replace(r'\ ', ' ')
+
+    def _trie_to_regex_str(self, trie: dict, depth: int = 0) -> str:
+        output = ""
+        if not trie:
+            return output
+        if len(trie) == 2 and '\0' in trie:
+            return "(?:" + next(self._escape(ch) + self._trie_to_regex_str(trie[ch], depth+1) for ch in trie if ch != '\0') + ")?"
+        if len(trie) > 1:
+            output += "(?>" if self.use_atomic_group else "(?:"
+        first = True
+        for ch, sub_trie in sorted(trie.items(), reverse=True):
+            if first:
+                first = False
+            else:
+                output += "|"
+            if ch != '\0':
+                output += self._escape(ch) + self._trie_to_regex_str(sub_trie, depth+1)
+        if len(trie) > 1:
+            output += ")"
+        return output
+
+    def _get_replacement(self, match: str):
+        if self.case_sensitive:
+            return self.dictionary[match]
+    
+        replacement: str = self.dictionary[match.lower()]    
+        if match == match.capitalize():
+            if (match == match.title()) and any(c.isupper() for c in replacement):
+                return replacement.title()
+            else:
+                return replacement[0].upper() + replacement[1:]
+        elif match == match.upper():
+            return replacement.upper()
+        else:
+            return replacement
+
+    def replace(self, text: str) -> str:
+        return self.regex.sub(lambda match: self._get_replacement(match.group()), text)
+    
+    def __call__(self, text: str) -> str:
+        return self.replace(text)
+
+def generate_tone_placement_replace_mapping(old_to_new=True, includes_rare_casing=False) -> dict:
+    def reverse_sent_case(text):
+        return text[0].lower() + text[1:].upper()
+
+    mapping = {}
+    for from_chars, to_chars in BASE_TONE_PLACEMENT_REPLACE_PAIRS:
+        if not old_to_new:
+            from_chars, to_chars = to_chars, from_chars
+
+        mapping[from_chars] = to_chars
+        mapping[from_chars.upper()] = to_chars.upper()
+        mapping[from_chars.capitalize()] = to_chars.capitalize()
+        if includes_rare_casing:
+            mapping[reverse_sent_case(from_chars)] = reverse_sent_case(to_chars)
+    
+    return mapping
+
+normalize_tone_placement_new_style = DictBasedOnePassStrReplacer(generate_tone_placement_replace_mapping())
+normalize_tone_placement_old_style = DictBasedOnePassStrReplacer(generate_tone_placement_replace_mapping(old_to_new=False))

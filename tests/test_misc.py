@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import pytest
+import random
 
-from ctnx.misc import remove_diacritics, remove_tones, sep_tone_from_char, separate_tone, normalize_confusables, normalize
-# from ctnx.constants import CONFUSABLE_CHAR_TRANS
+from ctnx.misc import remove_diacritics, remove_tones, sep_tone_from_char, separate_tone, normalize_confusables, normalize, normalize_tone_placement_new_style, normalize_tone_placement_old_style
+from ctnx.syllable import Syllable, NewStyleTonePlacer, OldStyleTonePlacer
 
 
 def test_remove_diacritics():
@@ -138,3 +140,39 @@ miễn phí giao b.ằ.ng toàn quốc
 - Bao xin việc, nhập học, xuất khẩu lao động.
 💥 KIỂM TRA 0K MỚI THANH T0ÁN TIỀN 💥
 """
+
+def test_normalize_tone_placement_new_style():
+    assert normalize_tone_placement_new_style(
+        "PHÓA PHÒA PHỎA PHÕA phọa, PHÓE PHÒE PHỎE PHÕE phọe, ÚY ÙY ỦY ŨY ụy, XÓONG XÒONG XỎONG XÕONG xọong, CỐÔNG CỒÔNG CỔÔNG CỖÔNG cộông"
+        ) == (
+        "PHOÁ PHOÀ PHOẢ PHOÃ phoạ, PHOÉ PHOÈ PHOẺ PHOẼ phoẹ, UÝ UỲ UỶ UỸ uỵ, XOÓNG XOÒNG XOỎNG XOÕNG xoọng, CÔỐNG CÔỒNG CÔỔNG CÔỖNG côộng"
+        )
+
+def test_normalize_tone_placement_old_style():
+    assert normalize_tone_placement_old_style(
+        "PHOÁ PHOÀ PHOẢ PHOÃ phoạ, PHOÉ PHOÈ PHOẺ PHOẼ phoẹ, UÝ UỲ UỶ UỸ uỵ, XOÓNG XOÒNG XOỎNG XOÕNG xoọng, CÔỐNG CÔỒNG CÔỔNG CÔỖNG côộng"
+        ) == (
+        "PHÓA PHÒA PHỎA PHÕA phọa, PHÓE PHÒE PHỎE PHÕE phọe, ÚY ÙY ỦY ŨY ụy, XÓONG XÒONG XỎONG XÕONG xọong, CỐÔNG CỒÔNG CỔÔNG CỖÔNG cộông"
+        )
+
+def generate_random_syllables(n=10):
+    Syllable.tone_placer = OldStyleTonePlacer
+    string = ' '.join(str(Syllable.from_string(random.choice(Syllable.ONSETS) + random.choice((
+        'uế', 'uề', 'uể', 'uễ', 'uệ',
+        'óa', 'òa', 'ỏa', 'ủy', 'ũy', 'ụy', 'òe', 'ỏe', 'õe', 'ủa',
+        'oả', 'oạ', 'uý', 'uỳ', 'oẽ', 'oẹ'))))
+        + random.choice(('', '', '', '', '', ',', '.', ';', '?', ':')) for _ in range(n))
+    Syllable.tone_placer = NewStyleTonePlacer
+    return string
+
+@pytest.fixture
+def dataset_tone_normalization():
+    random.seed(67)
+
+    data = generate_random_syllables(50000)
+    # print(data)
+    return data
+
+def test_new_style_tone_normalize(benchmark, dataset_tone_normalization):
+    result = benchmark(normalize_tone_placement_new_style, dataset_tone_normalization)
+    assert len(result) == len(dataset_tone_normalization)
