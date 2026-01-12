@@ -86,6 +86,7 @@ class Syllable:
                           'uay', 'uây', 'uôi', 'uya', 'uyu', 'ươi', 'ươu', 'yêu')
     OPEN_TRIPHTHONGS = ('uyê',)
     ROUNDED_TRIPHTHONGS = ('oai', 'oao', 'oay', 'oeo', 'uay', 'uây', 'uya', 'uyu')
+    # These "triphthongs" are actually diphthongs + semivowel (oversimplified)
     TRIPHTHONGS = CLOSED_TRIPHTHONGS + OPEN_TRIPHTHONGS
     OPEN_NUCLEI = OPEN_TRIPHTHONGS + OPEN_DIPHTHONGS
     CLOSED_NUCLEI = CLOSED_TRIPHTHONGS + CLOSED_DIPHTHONGS

@@ -42,6 +42,7 @@ def test_from_string():
     assert Syllable.from_string('guyu') == Syllable('g', 'uyu', '', '')
     assert Syllable.from_string('giạ') == Syllable('gi', 'a', '', '.')
     assert Syllable.from_string('gỵa') == Syllable('gi', 'ia', '', '.')
+    assert Syllable.from_string('kỷ') == Syllable('k', 'i', '', '?')
     
 def test_from_string_AUTO_CORRECT_disabled():
     Syllable.AUTO_CORRECT = False
@@ -61,6 +62,8 @@ def test_to_string():
     assert str(Syllable.from_string('moóc')) == 'moóc'
     assert str(Syllable.from_string('nưã')) == 'nữa'
     assert str(Syllable.from_string('gỵa')) == 'gịa'
+    assert str(Syllable.from_string('yêu')) == 'yêu'
+    assert str(Syllable.from_string('kỷ')) == 'kỉ'
 
 def test_old_style_tone_placement():
     Syllable.tone_placer = OldStyleTonePlacer
