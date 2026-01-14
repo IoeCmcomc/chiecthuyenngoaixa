@@ -6770,6 +6770,8 @@ def test_invalid_syllable():
         Syllable.from_string('ngh')
     with pytest.raises(Exception):
         Syllable.from_string('hä')
+    with pytest.raises(Exception):
+        Syllable.from_string('chă')
 
 def test_i_normalized_nucleus():
     assert Syllable.from_string('nguyên').normalized_nucleus == 'uyê'
@@ -6843,8 +6845,8 @@ def test_change_onset():
 
     syll2 = Syllable.from_string('goá')
     syll2.onset = 'c'
-    assert syll2.onset == 'c'
-    assert syll2 == 'coá'
+    assert syll2.onset == 'q'
+    assert syll2 == 'quá'
     syll2.onset = 'q'
     assert syll2.onset == 'q'
     assert syll2.nucleus == 'oa'
@@ -6868,3 +6870,28 @@ def test_change_multiple():
     assert syll.coda == ''
     assert syll.tone == '?'
     assert syll == 'vẻ'
+
+def test_change_rime():
+    syll = Syllable.from_string('ken')
+    assert syll.rime == 'en'
+    syll.rime = 'oen'
+    assert syll.rime == 'oen'
+    assert str(syll) == 'quen'
+
+TEST_SWAP_RIMES_CASES = [
+    ('thần', 'đằng', 'ân', 'ăng', 'ăng', 'ân', 'thằng', 'đần'),
+    ('nấu', 'xói', 'âu', 'oi', 'oi', 'âu', 'nói', 'xấu'),
+    ('chiều', 'ông', 'iêu', 'ông', 'ông', 'iêu', 'chồng', 'yêu'),
+]
+
+@pytest.mark.parametrize("case", TEST_SWAP_RIMES_CASES)
+def test_swap_rimes(case: tuple):
+    syll1 = Syllable.from_string(case[0])
+    syll2 = Syllable.from_string(case[1])
+    assert syll1.rime == case[2]
+    assert syll2.rime == case[3]
+    syll1.rime, syll2.rime = syll2.rime, syll1.rime
+    assert syll1.rime == case[4]
+    assert syll2.rime == case[5]
+    assert str(syll1) == case[6]
+    assert str(syll2) == case[7]

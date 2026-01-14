@@ -42,6 +42,39 @@ BASE_TONE_PLACEMENT_REPLACE_PAIRS = [
     ('ồô', 'ôồ'), ('ốô', 'ôố'), ('ổô', 'ôổ'), ('ỗô', 'ôỗ'), ('ộô', 'ôộ'), 
 ]
 
+# Rimes without tones 
+ALL_RIMES = [
+    "a", "ac", "ach", "ai", "am", "an", "ang", "anh", "ao", "ap", "at", "au", "ay",
+    "oa", "oac", "oach", "oai", "oam", "oan", "oang", "oanh", "oao", "oap", "oat", "oau", "oay",
+    "ăc", "ăm", "ăn", "ăng", "ăp", "ăt",
+    "oăc", "oăm", "oăn", "oăng", "oăp", "oăt",
+    "âc", "âm", "ân", "âng", "âp", "ât", "âu", "ây",
+    "uâc", "uâm", "uân", "uâng", "uâp", "uât", "uây",
+    "e", "ec", "em", "en", "eng", "eo", "ep", "et",
+    "oe", "oec", "oem", "oen", "oeng", "oeo", "oep", "oet",
+    "ê", "êch", "êm", "ên", "ênh", "êp", "êt", "êu",
+    "uê", "uêch", "uêm", "uên", "uênh", "uêp", "uêt", "uêu",
+    "i", "ia", "ich", "im", "in", "inh", "ip", "it", "iu", "y",
+    "uy", "uya", "uych", "uym", "uyn", "uynh", "uyp", "uyt", "uyu",
+    "iêc", "iêm", "iên", "iêng", "iêp", "iêt", "iêu", "yêm", "yên", "yêng", "yêt", "yêu",
+    "uyêc", "uyêm", "uyên", "uyêng", "uyêp", "uyêt", "uyêu",
+    "o", "oc", "oi", "om", "on", "ong", "op", "ot", "oy",
+    "oong", "ooc",
+    "ô", "ôc", "ôm", "ôn", "ông", "ôp", "ôt", "ôi",
+    "ôông", "ôôc",
+    "ơ", "ơi", "ơm", "ơn", "ơp", "ơt",
+    "uơ", "uơi", "uơm", "uơn", "uơp", "uơt",
+    "u", "uc", "ui", "um", "un", "ung", "up", "ut",
+    "ua",
+    "uôc", "uôi", "uôm", "uôn", "uông", "uôp", "uôt",
+    "ư", "ưc", "ưi", "ưm", "ưn", "ưng", "ưp", "ưt", "ưu",
+    "ưa",
+    "ươc", "ươi", "ươm", "ươn", "ương", "ươp", "ươt", "ươu",
+    # ví dụ: ngoao ngoao, nhoẻn miệng, quạu, quơ quào, dầu luyn, ngoem ngoém, ngoằn ngoèo,
+    # lở loét, loằng ngoằng, xập xoèng, xoèng xoèng, hoặc, oái oăm, xoăn, co quắp,
+    # thoăn thoắt, 
+]
+
 # The following confusable characters are extracted and modified 
 # from a subset of Unicode 15.1 confusables:
 # https://www.unicode.org/Public/security/15.1.0/confusables.txt

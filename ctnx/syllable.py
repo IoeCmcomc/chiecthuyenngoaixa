@@ -7,7 +7,7 @@ import unicodedata
 from abc import ABC, abstractmethod
 from functools import lru_cache
 
-from .constants import TONES, TONE_NAMES
+from .constants import TONES, TONE_NAMES, ALL_RIMES
 from .misc import normalize, separate_tone, is_even_tone
 
 def find_startswith(text: str, candidates: Iterable):
@@ -85,6 +85,7 @@ class Syllable:
     CLOSEABLE_DIPHTHONGS = ('oa', 'oă', 'oe', 'uê', 'uy')
     CLOSED_DIPHTHONGS = ('ai', 'ao', 'au', 'ay', 'âu', 'ây', 'eo', 'êu', 'ia', 'iu', 'oi',
                          'ôi', 'ơi', 'ua', 'ui', 'uơ', 'ưa', 'ưi', 'ưu', 'yu')
+    # Also includes combinations of an onglide semivowel and a vowel
     DIPHTHONGS = OPEN_DIPHTHONGS + CLOSEABLE_DIPHTHONGS + CLOSED_DIPHTHONGS
     CLOSED_TRIPHTHONGS = ('iêu', 'oai', 'oao', 'oau', 'oay', 'oeo',
                           'uay', 'uây', 'uôi', 'uya', 'uyu', 'ươi', 'ươu', 'yêu')
@@ -125,6 +126,48 @@ class Syllable:
         return self.onset == other.onset and self.nucleus == other.nucleus and self.coda == self.coda and self.tone == other.tone
 
     @classmethod
+    def _parse_rime(cls, string: str, has_q_onset: bool) -> tuple:
+        nucleus = ''
+        orig_nucleus_len = 0
+        if has_q_onset:
+            if not string.startswith('u') and not cls.AUTO_CORRECT:
+                raise Exception(f"Onset 'q' must be followed by 'u'")
+            
+            if string[0] in {'o', 'u'}:
+                string = string[1:]
+            else:
+                raise Exception(f"Onset 'q' can't be followed by '{string[0]}'")
+            if string[0] in {'o', 'u'}:
+                if cls.AUTO_CORRECT:
+                    string = string[1:]
+
+                    if string[0] in {'o', 'u'}:
+                        raise Exception(f"Invaild rime")    
+                else:
+                    raise Exception(f"Invaild rime")
+            
+            nucleus = find_startswith(string, cls.NUCLEI)
+            if nucleus:
+                # The length of the nucleus will change after being "lip-rounded"
+                # For example: 'ynh'/'inh' -> 'uynh'
+                orig_nucleus_len = len(nucleus)
+                nucleus = cls._apply_onglide_semivowel_to_nucleus(nucleus)
+        else:
+            nucleus = find_startswith(string, cls.NUCLEI)
+
+        if nucleus:
+            if orig_nucleus_len == 0:
+                orig_nucleus_len = len(nucleus)
+            string = string[orig_nucleus_len:]
+        # nucleus may be empty when parsing the 'gìn' syllable.
+
+        coda = find_startswith(string, cls.CODAS)
+        assert coda is not None
+        string = string[len(coda):]
+        
+        return (nucleus, coda, string)
+
+    @classmethod
     @lru_cache
     def from_string(cls, string: str) -> Syllable:
         """Create a Syllable object from string."""
@@ -148,51 +191,17 @@ class Syllable:
             if (len(string) > 1) and (string[0] == 'ê'):
                 string = 'i' + string
 
-        nucleus = ''
-        orig_nucleus_len = 0
-        if onset == 'q':
-            if not string.startswith('u') and not cls.AUTO_CORRECT:
-                raise Exception(f"Invaild syllable: 'q' must be followed by 'u' (in '{original}')")
-            
-            if string[0] in {'o', 'u'}:
-                string = string[1:]
-            else:
-                raise Exception(f"Invaild syllable: 'q' can't be followed by '{string[0]}' (in '{original}')")
-            if string[0] in {'o', 'u'}:
-                if cls.AUTO_CORRECT:
-                    string = string[1:]
+        nucleus, coda, rest = cls._parse_rime(string, onset == 'q')
 
-                    if string[0] in {'o', 'u'}:
-                        raise Exception(f"Invaild syllable: {original}")    
-                else:
-                    raise Exception(f"Invaild syllable: {original}")
-            
-            nucleus = find_startswith(string, cls.NUCLEI)
-            if nucleus:
-                # The length of the nucleus will change after being "lip-rounded"
-                # For example: 'ynh'/'inh' -> 'uynh'
-                orig_nucleus_len = len(nucleus)
-                nucleus = cls._apply_onglide_semivowel_to_nucleus(nucleus)
-        else:
-            nucleus = find_startswith(string, cls.NUCLEI)
-
-        if nucleus:
-            if orig_nucleus_len == 0:
-                orig_nucleus_len = len(nucleus)
-            string = string[orig_nucleus_len:]
-        else:
+        if not nucleus:
             if onset == 'gi':
                 nucleus = 'i'
             else:
                 raise Exception(f"Invaild syllable: {original}")
 
-        coda = find_startswith(string, cls.CODAS)
-        assert coda is not None
-        string = string[len(coda):]
-
-        if string != '':
+        if rest != '':
             raise Exception(
-                f"Unexpected characters '{string}' after a syllable (in '{original}'')")
+                f"Unexpected characters '{rest}' after a syllable (in '{original}'')")
 
         return cls(onset, nucleus, coda, tone)
 
@@ -221,34 +230,44 @@ class Syllable:
             ValueError(f"Invaild coda: {coda}")
         elif tone not in TONES:
             ValueError(f"Invaild tone: '{tone}'")
-
-        if onset in {'ng', 'ngh'}:
-            onset = 'ngh' if (nucleus[0] in {'e', 'ê', 'i'}) else 'ng'
         
         if self._nucleus_has_onglide_semivowel(nucleus):
-            # if onset in {'c', 'k'}:
-            #     onset = 'q'
-            pass
+            if onset in {'c', 'k'}:
+                onset = 'q'
         elif onset == 'q':
             onset = 'c'
         
         if onset in {'c', 'k'}:
             onset = 'k' if nucleus[0] in {'e', 'ê', 'i', 'y'} else 'c'
+        if onset in {'ng', 'ngh'}:
+            onset = 'ngh' if (nucleus[0] in {'e', 'ê', 'i'}) else 'ng'
+        
+        if onset == '':
+            if nucleus == 'iêu':
+                nucleus = 'yêu'
+            elif nucleus == 'iê':
+                nucleus = 'yê'
+        else:
+            if nucleus == 'yêu':
+                nucleus = 'iêu'
+            elif nucleus == 'yê':
+                nucleus = 'iê'
 
         if coda == '':
             if nucleus in self.OPEN_NUCLEI:
                 raise ValueError(f"Open syllable (nucleus: {nucleus}) must have a coda")
             elif nucleus in self.CLOSED_NUCLEI:
-                coda = ''
-            elif onset != 'q':
-                if nucleus == 'y':
-                    nucleus = 'i'
+                coda = ''                
 
         if (coda in {'c', 'p', 't'}) and not (tone in {'/', '.'}):
                 if tone in {'\\', '?'}:
                     tone = '.'
                 if tone in {'', '~'}:
                     tone = '/'
+        
+        rime = nucleus + coda
+        if rime not in ALL_RIMES:
+            raise ValueError(f"Invalid rime: {orig_nuclues + orig_coda}")
         
         if not self.AUTO_CORRECT:
             if onset != orig_onset:
@@ -334,6 +353,17 @@ class Syllable:
         """The rime of the syllable, which is the combination of the nucleus and the coda."""
 
         return self.normalized_nucleus + self.coda
+
+    @rime.setter
+    def rime(self, rime: str):
+        nucleus, coda, rest = self._parse_rime(rime, self.onset == 'q')
+        if not nucleus:
+            raise Exception('Invalid rime: rime')
+        if rest != '':
+            raise Exception(
+                f"Unexpected characters '{rest}' after a rime (in '{rime}'')")
+        
+        self.update(onset=self.onset, nucleus=nucleus, coda=coda, tone=self.tone)
 
     @staticmethod
     def _nucleus_has_onglide_semivowel(nucleus: str) -> bool:
