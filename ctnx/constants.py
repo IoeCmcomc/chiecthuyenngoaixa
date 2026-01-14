@@ -58,7 +58,7 @@ ALL_RIMES = [
     "uy", "uya", "uych", "uym", "uyn", "uynh", "uyp", "uyt", "uyu",
     "iêc", "iêm", "iên", "iêng", "iêp", "iêt", "iêu", "yêm", "yên", "yêng", "yêt", "yêu",
     "uyêc", "uyêm", "uyên", "uyêng", "uyêp", "uyêt", "uyêu",
-    "o", "oc", "oi", "om", "on", "ong", "op", "ot", "oy",
+    "o", "oc", "oi", "om", "on", "ong", "op", "ot",
     "oong", "ooc",
     "ô", "ôc", "ôm", "ôn", "ông", "ôp", "ôt", "ôi",
     "ôông", "ôôc",

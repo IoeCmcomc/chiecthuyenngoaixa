@@ -2,7 +2,7 @@
 
 import pytest
 
-from ctnx.syllable import Syllable, NewStyleTonePlacer, OldStyleTonePlacer
+from ctnx.syllable import Syllable, NewStyleTonePlacer, OldStyleTonePlacer, ALL_RIMES
 
 to_string_dataset = "Do bạch kim rất quý sẽ để lắp vô xương".split()
 
@@ -44,7 +44,6 @@ def test_from_string():
     assert Syllable.from_string('gỵa') == Syllable('gi', 'ia', '', '.')
     assert Syllable.from_string('kỷ') == Syllable('k', 'i', '', '?')
     assert Syllable.from_string('chuyện') == Syllable('ch', 'uyê', 'n', '.')
-    assert Syllable.from_string('quuấn') == Syllable('q', 'uâ', 'n', '/')
     
 def test_from_string_AUTO_CORRECT_disabled():
     Syllable.AUTO_CORRECT = False
@@ -65,7 +64,7 @@ def test_to_string():
     assert str(Syllable.from_string('nưã')) == 'nữa'
     assert str(Syllable.from_string('gỵa')) == 'gịa'
     assert str(Syllable.from_string('yêu')) == 'yêu'
-    assert str(Syllable.from_string('kỷ')) == 'kỉ'
+    assert str(Syllable.from_string('kỷ')) == 'kỷ'
     assert str(Syllable.from_string('khuyên')) == 'khuyên'
 
 def test_old_style_tone_placement():
@@ -6753,6 +6752,18 @@ RECOGNIZED_SYLLABLES = {
 def test_valid_syllables(string: str):
     assert Syllable.from_string(string)
 
+def generate_no_tone_syllables():
+    syllables = []
+    for onset in Syllable.ONSETS:
+        for rime in ALL_RIMES:
+            syllables.append(onset + rime)
+    
+    return syllables
+
+@pytest.mark.parametrize("string", generate_no_tone_syllables())
+def test_all_syllable_combinations(string: str):
+    assert Syllable.from_string(string)
+
 def test_invalid_syllable():
     with pytest.raises(Exception):
         Syllable.from_string('HDPE')
@@ -6774,33 +6785,33 @@ def test_invalid_syllable():
         Syllable.from_string('chă')
 
 def test_i_normalized_nucleus():
-    assert Syllable.from_string('nguyên').normalized_nucleus == 'uyê'
-    assert Syllable.from_string('sáu').normalized_nucleus == 'au'
-    assert Syllable.from_string('long').normalized_nucleus == 'o'
-    assert Syllable.from_string('niềng').normalized_nucleus == 'iê'
-    assert Syllable.from_string('mía').normalized_nucleus == 'ia'
-    assert Syllable.from_string('xoắn').normalized_nucleus == 'oă'
-    assert Syllable.from_string('huệ').normalized_nucleus == 'uê'
-    assert Syllable.from_string('quê').normalized_nucleus == 'uê'
-    assert Syllable.from_string('què').normalized_nucleus == 'oe'
-    assert Syllable.from_string('gia').normalized_nucleus == 'a'
-    assert Syllable.from_string('gìn').normalized_nucleus == 'i'
-    assert Syllable.from_string('giặc').normalized_nucleus == 'ă'
-    assert Syllable.from_string('yếu').normalized_nucleus == 'iêu'
-    assert Syllable.from_string('yểng').normalized_nucleus == 'iê'
-    assert Syllable.from_string('điêu').normalized_nucleus == 'iêu'
-    assert Syllable.from_string('quẳng').normalized_nucleus == 'oă'
-    assert Syllable.from_string('gì').normalized_nucleus == 'i'
-    assert Syllable.from_string('ký').normalized_nucleus == 'i'
-    assert Syllable.from_string('quan').normalized_nucleus == 'oa'
-    assert Syllable.from_string('của').normalized_nucleus == 'ua'
-    assert Syllable.from_string('quay').normalized_nucleus == 'oay'
-    assert Syllable.from_string('quýu').normalized_nucleus == 'uyu'
-    assert Syllable.from_string('phuỷu').normalized_nucleus == 'uyu'
-    assert Syllable.from_string('quái').normalized_nucleus == 'oai'
-    assert Syllable.from_string('khoái').normalized_nucleus == 'oai'
-    assert Syllable.from_string('quốc').normalized_nucleus == 'uô'
-    assert Syllable.from_string('coá').normalized_nucleus == 'oa'
+    assert Syllable.from_string('nguyên').i_normalized_nucleus == 'uyê'
+    assert Syllable.from_string('sáu').i_normalized_nucleus == 'au'
+    assert Syllable.from_string('long').i_normalized_nucleus == 'o'
+    assert Syllable.from_string('niềng').i_normalized_nucleus == 'iê'
+    assert Syllable.from_string('mía').i_normalized_nucleus == 'ia'
+    assert Syllable.from_string('xoắn').i_normalized_nucleus == 'oă'
+    assert Syllable.from_string('huệ').i_normalized_nucleus == 'uê'
+    assert Syllable.from_string('quê').i_normalized_nucleus == 'uê'
+    assert Syllable.from_string('què').i_normalized_nucleus == 'oe'
+    assert Syllable.from_string('gia').i_normalized_nucleus == 'a'
+    assert Syllable.from_string('gìn').i_normalized_nucleus == 'i'
+    assert Syllable.from_string('giặc').i_normalized_nucleus == 'ă'
+    assert Syllable.from_string('yếu').i_normalized_nucleus == 'iêu'
+    assert Syllable.from_string('yểng').i_normalized_nucleus == 'iê'
+    assert Syllable.from_string('điêu').i_normalized_nucleus == 'iêu'
+    assert Syllable.from_string('quẳng').i_normalized_nucleus == 'oă'
+    assert Syllable.from_string('gì').i_normalized_nucleus == 'i'
+    assert Syllable.from_string('ký').i_normalized_nucleus == 'i'
+    assert Syllable.from_string('quan').i_normalized_nucleus == 'oa'
+    assert Syllable.from_string('của').i_normalized_nucleus == 'ua'
+    assert Syllable.from_string('quay').i_normalized_nucleus == 'oay'
+    assert Syllable.from_string('quýu').i_normalized_nucleus == 'uyu'
+    assert Syllable.from_string('phuỷu').i_normalized_nucleus == 'uyu'
+    assert Syllable.from_string('quái').i_normalized_nucleus == 'oai'
+    assert Syllable.from_string('khoái').i_normalized_nucleus == 'oai'
+    assert Syllable.from_string('quốc').i_normalized_nucleus == 'uô'
+    assert Syllable.from_string('coá').i_normalized_nucleus == 'oa'
 
 def test_rime():
     assert Syllable.from_string('vần').rime == 'ân'
@@ -6879,6 +6890,7 @@ def test_change_rime():
     assert str(syll) == 'quen'
 
 TEST_SWAP_RIMES_CASES = [
+    ('trải', 'qua', 'ai', 'oa', 'oa', 'ai', 'troả', 'cai'),
     ('thần', 'đằng', 'ân', 'ăng', 'ăng', 'ân', 'thằng', 'đần'),
     ('nấu', 'xói', 'âu', 'oi', 'oi', 'âu', 'nói', 'xấu'),
     ('chiều', 'ông', 'iêu', 'ông', 'ông', 'iêu', 'chồng', 'yêu'),
