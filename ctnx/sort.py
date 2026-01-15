@@ -3,7 +3,7 @@
 from __future__ import annotations
 from typing import List, Iterable
 
-from .constants import ALPHABET, CHAR_ORDER_DICT, DEFAULT_TONE_ORDER, VOWEL_TONE_TO_CHAR
+from .constants import ALPHABET, DEFAULT_TONE_ORDER, VOWEL_TONE_TO_CHAR
 
 class ViCollator:
     """Vietnamese-aware class for generating sorting key for use with the `key` parameter

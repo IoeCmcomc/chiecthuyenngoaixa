@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from functools import lru_cache
 
 from .constants import TONES, TONE_NAMES, ALL_RIMES
-from .misc import normalize, separate_tone, is_even_tone
+from .misc import nfc_normalize, separate_tone, is_even_tone
 
 
 def find_startswith(text: str, candidates: Iterable):
@@ -158,7 +158,7 @@ class Syllable:
     def from_string(cls, string: str) -> Syllable:
         """Create a Syllable object from string."""
 
-        string = normalize(string).lower()
+        string = nfc_normalize(string).lower()
         if ' ' in string:
             raise Exception(f"The input string must not have whitespaces")
         original = string

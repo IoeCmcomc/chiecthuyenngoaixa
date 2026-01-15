@@ -4,7 +4,7 @@ import logging
 import pytest
 import random
 
-from ctnx.misc import remove_diacritics, remove_tones, sep_tone_from_char, separate_tone, normalize_confusables, normalize, normalize_tone_placement_new_style, normalize_tone_placement_old_style
+from ctnx.misc import remove_diacritics, remove_tones, sep_tone_from_char, separate_tone, normalize_confusables, normalize_tone_placement_new_style, normalize_tone_placement_old_style, IYNormalizer
 from ctnx.syllable import Syllable, NewStyleTonePlacer, OldStyleTonePlacer
 
 
@@ -176,3 +176,11 @@ def dataset_tone_normalization():
 def test_new_style_tone_normalize(benchmark, dataset_tone_normalization):
     result = benchmark(normalize_tone_placement_new_style, dataset_tone_normalization)
     assert len(result) == len(dataset_tone_normalization)
+
+def test_i_y_normalizer():
+    normalizer = IYNormalizer()
+    assert normalizer(
+        "HI VỌNG quí ca sĩ Ly Ly hát mĩ miều, li kỳ, vì diệu"
+        ) == (
+        "HY VỌNG quý ca sĩ Ly Ly hát mỹ miều, ly kỳ, vì diệu"
+        )
