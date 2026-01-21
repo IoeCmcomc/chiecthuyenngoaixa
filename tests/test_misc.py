@@ -179,8 +179,92 @@ def test_new_style_tone_normalize(benchmark, dataset_tone_normalization):
 
 def test_i_y_normalizer():
     normalizer = IYNormalizer()
+    assert normalizer("kiếm lời") == "kiếm lời"
+    assert normalizer("Í em sao") == "Ý em sao"
+    assert normalizer("vì sao") == "vì sao"
     assert normalizer(
-        "HI VỌNG quí ca sĩ Ly Ly hát mĩ miều, li kỳ, vì diệu"
+        "HI VỌNG quí ca sĩ Ly Ly hát í tứ mĩ miều, li kỳ, vì diệu"
         ) == (
-        "HY VỌNG quý ca sĩ Ly Ly hát mỹ miều, ly kỳ, vì diệu"
+        "HY VỌNG quý ca sĩ Ly Ly hát ý tứ mỹ miều, ly kỳ, vì diệu"
         )
+
+def test_i_y_normalizer_sinoviet_heuristic():
+    normalizer_enabled = IYNormalizer(use_sinoviet_heuristic=True, i_override_list=[])
+    assert normalizer_enabled(
+        "hỳ hì, quản lí các cá nhân và công ti mĩ phẩm lỳ lợm, cố í trục lợi hàng tỉ đồng, vi phạm qui định cực kỳ tinh vy"
+    ) == (
+        "hì hì, quản lý các cá nhân và công ty mỹ phẩm lì lợm, cố ý trục lợi hàng tỷ đồng, vi phạm quy định cực kỳ tinh vi"
+    )
+    normalizer_disabled = IYNormalizer(use_sinoviet_heuristic=False, i_override_list=[])
+    assert normalizer_disabled(
+        "hỳ hì, quản lí các cá nhân và công ti mĩ phẩm lỳ lợm, cố í trục lợi hàng tỉ đồng, vi phạm qui định cực kỳ tinh vy"
+    ) == (
+        "hỳ hỳ, quản lý các cá nhân và công ty mỹ phẩm lỳ lợm, cố ý trục lợi hàng tỷ đồng, vi phạm quy định cực kỳ tinh vi"
+    )
+
+# Tests are genarated by Gemini 3, fixed by me
+TEST_I_Y_NORMALIZER_DEFAULT_I_EXCEPTIONS_CASES = [
+    (
+        "Cậu ấy hỳ hục cả buổi để kỳ cọ cái sàn đen sỳ và hôi sỳ cho thật kỹ càng và tỷ mỷ.",
+        "Cậu ấy hì hục cả buổi để kì cọ cái sàn đen sì và hôi sì cho thật kĩ càng và tỉ mỉ."
+    ),
+    (
+        "Lão nhà giàu ky bo, suốt ngày lo ky cóp và tính toán chi ly từng đồng, dù trong tay có bạc tỷ và hứa sẽ đãi ngộ hậu hỹ.",
+        "Lão nhà giàu ki bo, suốt ngày lo ki cóp và tính toán chi li từng đồng, dù trong tay có bạc tỉ và hứa sẽ đãi ngộ hậu hĩ."
+    ),
+    (
+        "Bà chủ cân một ky-lô-gam bột mỳ và khoai mỳ, thêm chút mỳ chính, không sai một my ly hay một tý ty nào.",
+        "Bà chủ cân một ki-lô-gam bột mì và khoai mì, thêm chút mì chính, không sai một mi li hay một tí ti nào."
+    ),
+    (
+        "Mọi người sì sụp ăn bát mỳ sợi nóng hổi.",
+        "Mọi người sì sụp ăn bát mì sợi nóng hổi."
+    ),
+    (
+        "Cô gái trông vẻ ngoài cù mỳ, đôi mi mắt cong, nhưng thực ra rất lỳ lợm và kỹ tính, lúc nào cũng cười hỷ hả với đôi mắt ty hý.",
+        "Cô gái trông vẻ ngoài cù mì, đôi mi mắt cong, nhưng thực ra rất lì lợm và kĩ tính, lúc nào cũng cười hỉ hả với đôi mắt ti hí."
+    ),
+    (
+        "Thằng bé hý hoáy sửa đồ chơi, chốc chốc lại tý toáy tỳ tay lên bàn, miệng thì thầm tỷ tê trong tiếng mưa rơi tý tách.",
+        "Thằng bé hí hoáy sửa đồ chơi, chốc chốc lại tí toáy tì tay lên bàn, miệng thì thầm tỉ tê trong tiếng mưa rơi tí tách."
+    ),
+    (
+        "Nó cười hy hy rồi lại hỳ hỳ, vẻ mặt hý hửng và hý hởn như vừa nhận được quà.",
+        "Nó cười hi hi rồi lại hì hì, vẻ mặt hí hửng và hí hởn như vừa nhận được quà."
+    ),
+    (
+        "Chiếc va ly cũ kỹ của cụ kỵ để lại nằm dưới gốc cây sy, bên trong là cuốn vở kẻ ô ly đã nhẵn lỳ theo thời gian.",
+        "Chiếc va li cũ kĩ của cụ kị để lại nằm dưới gốc cây si, bên trong là cuốn vở kẻ ô li đã nhẵn lì theo thời gian."
+    ),
+    (
+        "Đừng tỵ nạnh chuyện lỳ xì ít hay nhiều, nó chỉ trả lời lý nhí rồi quay sang hỷ mũi ở góc ky-ốt.",
+        "Đừng tị nạnh chuyện lì xì ít hay nhiều, nó chỉ trả lời lí nhí rồi quay sang hỉ mũi ở góc ki-ốt."
+    ),
+    (
+        "Tấm biển làm bằng my-ca được gia cố bởi khung ty-tan và hợp chất sy-lic.",
+        "Tấm biển làm bằng mi-ca được gia cố bởi khung ti-tan và hợp chất si-lic."
+    )
+]
+
+@pytest.mark.parametrize("input, output", TEST_I_Y_NORMALIZER_DEFAULT_I_EXCEPTIONS_CASES)
+def test_i_y_normalizer_default_i_exceptions(input, output):
+    normalizer = IYNormalizer(use_sinoviet_heuristic=False)
+    assert normalizer(input) == output
+
+# Tests are genarated by Gemini 3, fixed by me
+TEST_I_Y_NORMALIZER_PRESET_INPUT = "bác sĩ gan lì dán mí và quí mến người hì hục lập kỉ lục ở công ti hùng vĩ."
+TEST_I_Y_NORMALIZER_PRESETS = (
+    ("i", "bác sĩ gan lì dán mí và quí mến người hì hục lập kỉ lục ở công ti hùng vĩ."),
+    ("unified_i", "bác sĩ gan lì dán mí và quý mến người hì hục lập kỉ lục ở công ti hùng vĩ."),
+    ("sinoviet_hklmqstv_y", "bác sỹ gan lì dán mí và quý mến người hì hục lập kỷ lục ở công ty hùng vỹ."),
+    ("hklmqstv_y", "bác sỹ gan lỳ dán mý và quý mến người hì hục lập kỷ lục ở công ty hùng vỹ."),
+    ("sinoviet_hklmqst_y", "bác sỹ gan lì dán mí và quý mến người hì hục lập kỷ lục ở công ty hùng vĩ."),
+    ("hklmqst_y", "bác sỹ gan lỳ dán mý và quý mến người hì hục lập kỷ lục ở công ty hùng vĩ."),
+    ("sinoviet_hklmqt_y", "bác sĩ gan lì dán mí và quý mến người hì hục lập kỷ lục ở công ty hùng vĩ."),
+    ("hklmqt_y", "bác sĩ gan lỳ dán mý và quý mến người hì hục lập kỷ lục ở công ty hùng vĩ."),
+)
+
+@pytest.mark.parametrize("preset, output", TEST_I_Y_NORMALIZER_PRESETS)
+def test_i_y_normalizer_preset(preset, output):
+    normalizer = IYNormalizer.from_preset_style(preset)
+    assert normalizer(TEST_I_Y_NORMALIZER_PRESET_INPUT) == output
