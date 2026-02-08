@@ -4,9 +4,9 @@ import logging
 import pytest
 import random
 
+from ctnx.constants import TONES
 from ctnx.misc import remove_diacritics, remove_tones, sep_tone_from_char, separate_tone, normalize_confusables, normalize_tone_placement_new_style, normalize_tone_placement_old_style, IYNormalizer
 from ctnx.syllable import Syllable, NewStyleTonePlacer, OldStyleTonePlacer
-
 
 def test_remove_diacritics():
     assert remove_diacritics(
@@ -173,9 +173,7 @@ def dataset_tone_normalization():
     # print(data)
     return data
 
-def test_new_style_tone_normalize(benchmark, dataset_tone_normalization):
-    result = benchmark(normalize_tone_placement_new_style, dataset_tone_normalization)
-    assert len(result) == len(dataset_tone_normalization)
+
 
 def test_i_y_normalizer():
     normalizer = IYNormalizer()
@@ -254,17 +252,104 @@ def test_i_y_normalizer_default_i_exceptions(input, output):
 # Tests are genarated by Gemini 3, fixed by me
 TEST_I_Y_NORMALIZER_PRESET_INPUT = "bác sĩ gan lì dán mí và quí mến người hì hục lập kỉ lục ở công ti hùng vĩ."
 TEST_I_Y_NORMALIZER_PRESETS = (
-    ("i", "bác sĩ gan lì dán mí và quí mến người hì hục lập kỉ lục ở công ti hùng vĩ."),
-    ("unified_i", "bác sĩ gan lì dán mí và quý mến người hì hục lập kỉ lục ở công ti hùng vĩ."),
+    ("i",                   "bác sĩ gan lì dán mí và quí mến người hì hục lập kỉ lục ở công ti hùng vĩ."),
+    ("unified_i",           "bác sĩ gan lì dán mí và quý mến người hì hục lập kỉ lục ở công ti hùng vĩ."),
     ("sinoviet_hklmqstv_y", "bác sỹ gan lì dán mí và quý mến người hì hục lập kỷ lục ở công ty hùng vỹ."),
-    ("hklmqstv_y", "bác sỹ gan lỳ dán mý và quý mến người hì hục lập kỷ lục ở công ty hùng vỹ."),
-    ("sinoviet_hklmqst_y", "bác sỹ gan lì dán mí và quý mến người hì hục lập kỷ lục ở công ty hùng vĩ."),
-    ("hklmqst_y", "bác sỹ gan lỳ dán mý và quý mến người hì hục lập kỷ lục ở công ty hùng vĩ."),
-    ("sinoviet_hklmqt_y", "bác sĩ gan lì dán mí và quý mến người hì hục lập kỷ lục ở công ty hùng vĩ."),
-    ("hklmqt_y", "bác sĩ gan lỳ dán mý và quý mến người hì hục lập kỷ lục ở công ty hùng vĩ."),
+    ("hklmqstv_y",          "bác sỹ gan lỳ dán mý và quý mến người hì hục lập kỷ lục ở công ty hùng vỹ."),
+    ("sinoviet_hklmqst_y",  "bác sỹ gan lì dán mí và quý mến người hì hục lập kỷ lục ở công ty hùng vĩ."),
+    ("hklmqst_y",           "bác sỹ gan lỳ dán mý và quý mến người hì hục lập kỷ lục ở công ty hùng vĩ."),
+    ("sinoviet_hklmqt_y",   "bác sĩ gan lì dán mí và quý mến người hì hục lập kỷ lục ở công ty hùng vĩ."),
+    ("hklmqt_y",            "bác sĩ gan lỳ dán mý và quý mến người hì hục lập kỷ lục ở công ty hùng vĩ."),
 )
 
 @pytest.mark.parametrize("preset, output", TEST_I_Y_NORMALIZER_PRESETS)
 def test_i_y_normalizer_preset(preset, output):
     normalizer = IYNormalizer.from_preset_style(preset)
     assert normalizer(TEST_I_Y_NORMALIZER_PRESET_INPUT) == output
+
+
+def make_random_syllable():
+    onset = random.choice(('', 'ch', 'h', 'k', 'm', 'ph', 'q', 's', 't', 'v'))
+    if onset == 'q':
+        rime = random.choice(('ui', 'uy', 'ue', 'ua'))
+    else:    
+        rime = random.choice(('i', 'i', 'i', 'y', 'y', 'y', 'oa', 'oe', 'ia', 'oai', 'oeo', 'oao'))
+        if onset == 'k':
+            if rime[:2] in {'oa', 'oe'}:
+                onset = 'q'
+                rime = 'u' + rime[1:]
+            elif onset not in {'i', 'y', 'ia'}:
+                onset = 'c'
+        elif (onset == 'c') and (rime in {'i', 'y', 'ia'}):
+            onset = 'k'
+    if len(rime) == 1:
+        tone_place_pos = 0
+    else:
+        tone_place_pos = random.randint(0, len(rime)-1)
+    toned_rime = NewStyleTonePlacer.place_to_vowels_at(rime, random.choice(TONES), tone_place_pos)
+    return onset + toned_rime
+    
+def generate_i_y_long_string(num_line=10):
+    random.seed(67)
+
+    lines = []
+    for i in range(num_line):
+        line = ""
+        last_is_punct = False
+        should_cap = True
+        while True:
+            r = random.randint(0, 5)
+            if (r == 0) and (not last_is_punct):
+                punct = random.choice(('.', ',', ';', '!', '?', ':', '<END>'))
+                if punct == '<END>':
+                    line += '.'
+                    break
+                else:
+                    line += punct
+                    last_is_punct = True
+                    should_cap = punct in {'.', '!', '?'}
+            else:
+                last_is_punct = False
+                if random.randint(0, 2) == 0:
+                    word = random.choice(('hì hục', 'hỳ hục', 'lí nhí', 'lý nhí', 'kì cọ', 'kỳ cọ'))
+                else:
+                    word = make_random_syllable()
+                if should_cap:
+                    should_cap = False
+                    word = word.capitalize()
+                line += " " + word
+        
+        lines.append(line.strip())
+
+    return '\n'.join(lines)
+
+# @pytest.fixture
+def make_syllables_benchmark_text(num_line=10):
+    random.seed(67)
+
+    data = generate_i_y_long_string(num_line)
+    return data
+
+# BENCHMARK_STRING = make_syllables_benchmark_text()
+BENCHMARK_MAKE_NUM_LINE_SIZES = (1000, 10000)
+
+@pytest.mark.parametrize("num_line", BENCHMARK_MAKE_NUM_LINE_SIZES)
+def test_bench_tone_normalize(benchmark, num_line):
+    text = make_syllables_benchmark_text(num_line)
+    benchmark(normalize_tone_placement_new_style, text)
+
+@pytest.mark.parametrize("preset", IYNormalizer.POSSIBLE_PRESET_STYLES)
+@pytest.mark.parametrize("num_line", BENCHMARK_MAKE_NUM_LINE_SIZES)
+def test_bench_i_y_normalizer_preset(benchmark, preset, num_line):
+    normalizer = IYNormalizer.from_preset_style(preset)
+    text = make_syllables_benchmark_text(num_line)
+    benchmark(normalizer, text)
+
+@pytest.mark.parametrize("preset", IYNormalizer.POSSIBLE_PRESET_STYLES)
+@pytest.mark.parametrize("num_line", BENCHMARK_MAKE_NUM_LINE_SIZES)
+def test_bench_i_y_normalizer_preset_cache(benchmark, preset, num_line):
+    normalizer = IYNormalizer.from_preset_style(preset, max_repl_cache_size=190)
+    text = make_syllables_benchmark_text(num_line)
+    benchmark(normalizer, text)
+    print(normalizer._get_non_exceptional_replacement.cache_info())
+    print(normalizer._get_replacement_maybe_cached.cache_info())

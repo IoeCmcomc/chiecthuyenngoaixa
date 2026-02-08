@@ -35,10 +35,14 @@ class TonePlacer(ABC):
 
         return unicodedata.lookup(name)
 
+    @staticmethod
+    def place_to_vowels_at(vowels, tone, position):
+        return vowels[:position] + TonePlacer.place_to_char(vowels[position], tone) + vowels[position+1:]
+
     @classmethod
     def place(cls, syllable: Syllable, nucleus) -> str:
         i = cls.placement_index(syllable)
-        return nucleus[:i] + cls.place_to_char(nucleus[i], syllable.tone) + nucleus[i+1:]
+        return cls.place_to_vowels_at(nucleus, syllable.tone, i)
 
     @classmethod
     @abstractmethod

@@ -150,7 +150,7 @@ class DictBasedOnePassStrReplacer:
         self.dictionary = dictionary
         regex_string = self._build_trie_regex_str(dictionary)
         regex_string = self._wrap_word_boundaries(regex_string, word_boundary)
-        
+
         if case_sensitive:
             self.regex = re_compile(regex_string)
         else:
@@ -158,7 +158,7 @@ class DictBasedOnePassStrReplacer:
 
     def _build_trie_regex_str(self, dictionary: dict):
         return self._trie_to_regex_str(self._make_trie(list(dictionary.keys())))
-    
+
     def _wrap_word_boundaries(self, regex_string: str, word_boundary: str):
         if word_boundary == r'\b':
             regex_string = word_boundary + regex_string + word_boundary
@@ -251,7 +251,6 @@ normalize_tone_placement_old_style = DictBasedOnePassStrReplacer(
     generate_tone_placement_replace_mapping(old_to_new=False))
 
 
-
 class IYNormalizer(DictBasedOnePassStrReplacer):
     ONSETS = ['qu', 'h', 'k', 'l', 'm', 's', 't', 'v',]
 
@@ -269,52 +268,65 @@ class IYNormalizer(DictBasedOnePassStrReplacer):
 
     SYLLABLE_PATTERN = f"([{''.join(ONSETS[1:])}]|{ONSETS[0]})?[{LOWER_I_VARIANTS}{LOWER_Y_VARIANTS}]"
 
+    POSSIBLE_PRESET_STYLES = (
+        "i", "unified_i",
+        "sinoviet_hklmqstv_y", "hklmqstv_y",
+        "sinoviet_hklmqst_y", "hklmqst_y",
+        "sinoviet_hklmqt_y", "hklmqt_y"
+    )
+
     DEFAULT_I_OVERRIDE_LIST = [
-    "hi hi", "hì hì", "hí hí", "hị hị", "hì hục", "hì hụi", "hỉ hả", 
-    "hỉ mũi", "hí hoáy", "hí húi", "hí hửng", "hí hởn", "hủ hỉ", "hậu hĩ",
-    "ki bo", "ki cóp", "ki-lô-gam", "ki-ốt", "kì cạch", "kì cọ", "kì kèo", 
-    "kì cùng", "kì đà", "kì giông", "kí ninh", "kĩ tính", "kĩ càng", 
-    "cũ kĩ", "cụ kị", "ô li", "li bì", "li ti", "li-ti", "chi li", 
-    "cu li", "mi li", "lâm li", "va li", "phẳng lì", "nhẵn lì", "lì loà", 
-    "lì lợm", "lì xì", "lí nhí", "lũ lĩ", "kiết lị", "mi-ca", "mi-crô", 
-    "mi mắt", "cù mì", "lúa mì", "khoai mì", "bột mì", "mì sợi", "mì chính", 
-    "rễ mí", "tỉ mỉ", "mụ mị", "cây si", "nốt si", "si-lic", "đen sì", 
-    "hôi sì", "hàn sì", "sì sụp", "mua sỉ", "ti hí", "ti gôn", "ti-tan", 
-    "ti toe", "đinh ti", "ti trôn", "ti ti", "ti tỉ", "ti tiện", "tì tì", 
-    "tì vết", "tì tay", "tù tì", "tí toáy", "tí tách", "tí teo", "tí hon", 
-    "tỉ tê", "bạc tỉ", "tị nạnh", "tí ti",
-]
+        "hi hi", "hì hì", "hí hí", "hị hị", "hì hục", "hì hụi", "hỉ hả",
+        "hỉ mũi", "hí hoáy", "hí húi", "hí hửng", "hí hởn", "hủ hỉ", "hậu hĩ",
+        "ki bo", "ki cóp", "ki-lô-gam", "ki-ốt", "kì cạch", "kì cọ", "kì kèo",
+        "kì cùng", "kì đà", "kì giông", "kí ninh", "kĩ tính", "kĩ càng",
+        "cũ kĩ", "cụ kị", "ô li", "li bì", "li ti", "li-ti", "chi li",
+        "cu li", "mi li", "lâm li", "va li", "phẳng lì", "nhẵn lì", "lì loà",
+        "lì lợm", "lì xì", "lí nhí", "lũ lĩ", "kiết lị", "mi-ca", "mi-crô",
+        "mi mắt", "cù mì", "lúa mì", "khoai mì", "bột mì", "mì sợi", "mì chính",
+        "rễ mí", "tỉ mỉ", "mụ mị", "cây si", "nốt si", "si-lic", "đen sì",
+        "hôi sì", "hàn sì", "sì sụp", "mua sỉ", "ti hí", "ti gôn", "ti-tan",
+        "ti toe", "đinh ti", "ti trôn", "ti ti", "ti tỉ", "ti tiện", "tì tì",
+        "tì vết", "tì tay", "tù tì", "tí toáy", "tí tách", "tí teo", "tí hon",
+        "tỉ tê", "bạc tỉ", "tị nạnh", "tí ti",
+        # Sino-Vietnamese words
+        "ti tiện", "tự ti",
+    ]
 
     def __init__(self, use_atomic_group=False,
-                ignore_likely_proper_nouns=True,
-            h: Literal['i', 'y']='y',
-            k='y',
-            l='y',
-            m='y',
-            qu='y',
-            s='i',
-            t='y',
-            v='i',
-            i='y',
-            use_sinoviet_heuristic=True,
-            i_override_list: Optional[Iterable[str]] = None,
-            ) -> None:
-        
+                 ignore_likely_proper_nouns=True,
+                 h: Literal['i', 'y'] = 'y',
+                 k='y',
+                 l='y',
+                 m='y',
+                 qu='y',
+                 s='i',
+                 t='y',
+                 v='i',
+                 i='y',
+                 use_sinoviet_heuristic=True,
+                 i_override_list: Optional[Iterable[str]] = None,
+                 max_repl_cache_size: Optional[int] = 0,
+                 ) -> None:
+
         i_override_list = i_override_list
         actual_i_override_list = self.DEFAULT_I_OVERRIDE_LIST
         if i_override_list is not None:
             actual_i_override_list = i_override_list
-        
+
         self.case_sensitive = False
         self.use_atomic_group = use_atomic_group
         self.ignore_likely_proper_nouns = ignore_likely_proper_nouns
         self.i_override_set = set(actual_i_override_list)
         self.use_sinoviet_heuristic = use_sinoviet_heuristic
+        self.max_repl_cache_size = max_repl_cache_size
 
-        self.dictionary = self._generate_exeption_phrases_mapping(actual_i_override_list)
-        
-        regex_string = self._build_trie_regex_str(self.dictionary) + '|' + self.SYLLABLE_PATTERN
-        regex_string = f"(?:{regex_string})" # prevents lời becomes lờy
+        self.dictionary = self._generate_exception_phrases_mapping(
+            actual_i_override_list)
+
+        regex_string = self._build_trie_regex_str(
+            self.dictionary) + '|' + self.SYLLABLE_PATTERN
+        regex_string = f"(?:{regex_string})"  # prevents lời from becoming lờy
         regex_string = self._wrap_word_boundaries(regex_string, r'\b')
 
         self.regex = re_compile(regex_string, re_IGNORECASE)
@@ -333,14 +345,16 @@ class IYNormalizer(DictBasedOnePassStrReplacer):
         for k, v in trans_tables_router.items():
             if v is None:
                 if k == 'i':
-                    raise ValueError(f"Value for case of the standalone 'i' must be either 'i' or 'y'")
+                    raise ValueError(
+                        f"Value for case of the standalone 'i' must be either 'i' or 'y'")
                 else:
-                    raise ValueError(f"Value for the case of '{k}' onset consonant must be either 'i' or 'y'")
-        
+                    raise ValueError(
+                        f"Value for the case of '{k}' onset consonant must be either 'i' or 'y'")
+
         self.trans_tables_router = trans_tables_router
-    
+
     @classmethod
-    def _generate_exeption_phrases_mapping(cls, phrases: Iterable[str]) -> Dict:
+    def _generate_exception_phrases_mapping(cls, phrases: Iterable[str]) -> Dict:
         actual_syllable_pattern = fr"^{cls.SYLLABLE_PATTERN}[ -]?$"
         syllable_regex = re_compile(actual_syllable_pattern, re_IGNORECASE)
         tokenize_regex = re_compile(r"\w+[ -]?", re_IGNORECASE)
@@ -351,10 +365,11 @@ class IYNormalizer(DictBasedOnePassStrReplacer):
             for syllable in syllables:
                 match = syllable_regex.match(syllable)
                 if match:
-                    combination_choices.append((syllable.translate(cls.Y_TO_I_TRANS), syllable.translate(cls.I_TO_Y_TRANS)))
+                    combination_choices.append(
+                        (syllable.translate(cls.Y_TO_I_TRANS), syllable.translate(cls.I_TO_Y_TRANS)))
                 else:
                     combination_choices.append((syllable, syllable))
-        
+
             for combination in product(*combination_choices):
                 results[''.join(combination)] = phrase
 
@@ -362,93 +377,114 @@ class IYNormalizer(DictBasedOnePassStrReplacer):
 
     @classmethod
     def from_preset_style(cls,
-                            style:
+                          style:
                           Literal["i", "unified_i",
                                   "sinoviet_hklmqstv_y", "hklmqstv_y",
                                   "sinoviet_hklmqst_y", "hklmqst_y",
                                   "sinoviet_hklmqt_y", "hklmqt_y"]
-                                = "sinoviet_hklmqt_y",
-                            use_atomic_group=False,
-                            ignore_likely_proper_nouns=True,
-                            i_override_list=None,
-        ) -> IYNormalizer:
+                          = "sinoviet_hklmqt_y",
+                          use_atomic_group=False,
+                          ignore_likely_proper_nouns=True,
+                          i_override_list=None,
+                          max_repl_cache_size: Optional[int] = 0,
+                          ) -> IYNormalizer:
         if style == "i":
             return IYNormalizer(
                 use_atomic_group, ignore_likely_proper_nouns,
                 h='i', k='i', l='i', m='i', qu='i', s='i', t='i', v='i', i='i',
-                use_sinoviet_heuristic=False, i_override_list=[])
+                use_sinoviet_heuristic=False, i_override_list=[], max_repl_cache_size=max_repl_cache_size)
         elif style == "unified_i":
             return IYNormalizer(
                 use_atomic_group, ignore_likely_proper_nouns,
                 h='i', k='i', l='i', m='i', qu='y', s='i', t='i', v='i', i='y',
-                use_sinoviet_heuristic=False, i_override_list=i_override_list)
+                use_sinoviet_heuristic=False, i_override_list=i_override_list, max_repl_cache_size=max_repl_cache_size)
         elif style == "sinoviet_hklmqstv_y":
             return IYNormalizer(
                 use_atomic_group, ignore_likely_proper_nouns,
                 h='y', k='y', l='y', m='y', qu='y', s='y', t='y', v='y', i='y',
-                use_sinoviet_heuristic=True, i_override_list=i_override_list)
+                use_sinoviet_heuristic=True, i_override_list=i_override_list, max_repl_cache_size=max_repl_cache_size)
         elif style == "hklmqstv_y":
             return IYNormalizer(
                 use_atomic_group, ignore_likely_proper_nouns,
                 h='y', k='y', l='y', m='y', qu='y', s='y', t='y', v='y', i='y',
-                use_sinoviet_heuristic=False, i_override_list=i_override_list)
+                use_sinoviet_heuristic=False, i_override_list=i_override_list, max_repl_cache_size=max_repl_cache_size)
         elif style == "sinoviet_hklmqst_y":
             return IYNormalizer(
                 use_atomic_group, ignore_likely_proper_nouns,
                 h='y', k='y', l='y', m='y', qu='y', s='y', t='y', v='i', i='y',
-                use_sinoviet_heuristic=True, i_override_list=i_override_list)
+                use_sinoviet_heuristic=True, i_override_list=i_override_list, max_repl_cache_size=max_repl_cache_size)
         elif style == "hklmqst_y":
             return IYNormalizer(
                 use_atomic_group, ignore_likely_proper_nouns,
                 h='y', k='y', l='y', m='y', qu='y', s='y', t='y', v='i', i='y',
-                use_sinoviet_heuristic=False, i_override_list=i_override_list)
+                use_sinoviet_heuristic=False, i_override_list=i_override_list, max_repl_cache_size=max_repl_cache_size)
         elif style == "sinoviet_hklmqt_y":
             return IYNormalizer(
                 use_atomic_group, ignore_likely_proper_nouns,
                 h='y', k='y', l='y', m='y', qu='y', s='i', t='y', v='i', i='y',
-                use_sinoviet_heuristic=True, i_override_list=i_override_list)
+                use_sinoviet_heuristic=True, i_override_list=i_override_list, max_repl_cache_size=max_repl_cache_size)
         elif style == "hklmqt_y":
             return IYNormalizer(
                 use_atomic_group, ignore_likely_proper_nouns,
                 h='y', k='y', l='y', m='y', qu='y', s='i', t='y', v='i', i='y',
-                use_sinoviet_heuristic=False, i_override_list=i_override_list)
+                use_sinoviet_heuristic=False, i_override_list=i_override_list, max_repl_cache_size=max_repl_cache_size)
         else:
             return IYNormalizer()
+
+    @property
+    def max_repl_cache_size(self):
+        return self._max_repl_cache_size
+
+    @max_repl_cache_size.setter
+    def max_repl_cache_size(self, value: Optional[int]):
+        if value == 0:
+            self._get_non_exceptional_replacement = self.__get_non_exceptional_replacement
+            self._get_replacement_maybe_cached = self._get_replacement
+        else:
+            self._get_non_exceptional_replacement = lru_cache(
+                maxsize=value)(self.__get_non_exceptional_replacement)
+            self._get_replacement_maybe_cached = lru_cache(
+                maxsize=value)(self._get_replacement)
+        self._max_repl_cache_size = value
 
     def _get_normalized_form(self, match: re_Match):
         match_str: str = match.group()
         if self.ignore_likely_proper_nouns:
             if match_str == match_str.capitalize():
                 match_pos = match.pos
-                if match_pos > 0: # not at the start of the string
+                if match_pos > 0:  # not at the start of the string
                     return match_str
 
-        if not match.group(1) and (len(match_str) > 1): # exception phrase found
-            return self._get_replacement(match_str)
+        if not match.group(1) and (len(match_str) > 1):  # exception phrase found
+            return self._get_replacement_maybe_cached(match_str)
         else:
             onset = (match.group(1) or '').lower()
-            if self.use_sinoviet_heuristic:
-                match_lower_str = match_str.lower()
-                # non-existent Sino-Vietnamese tokens
-                # Source: https://ling.ussh.vnu.edu.vn/vi/nghien-cuu-khoa-hoc/chuong-trinh-de-tai-du-an/ban-tiep-ve-chuyen-i-ngan-y-dai-605.html
-                if match_lower_str in {'hỳ', 'lỳ', 'lỷ', 'lỹ', 'mỷ', 'mý', 'sỳ', 'sý', 'sỵ', 'tỹ'}:
-                    return match_str.translate(self.Y_TO_I_TRANS)
-                # non-existent non-Sino-Vietnamese tokens
-                elif match_lower_str in {'kỉ', 'lỉ', 'mĩ', 'sí'}:
-                    return match_str.translate(self.I_TO_Y_TRANS)
-                elif match_lower_str in {'hì', 'lì', 'lỉ', 'lĩ', 'mỉ', 'mí', 'sì', 'sí', 'sị', 'tĩ', 'kỷ', 'lỷ', 'mỹ', 'sý',}:
-                    return match_str
+            return self._get_non_exceptional_replacement(match_str, onset)
 
-            if onset:
-                return match_str.translate(self.trans_tables_router[onset])
-            else:
-                return match_str.translate(self.trans_tables_router['i'])
+    def __get_non_exceptional_replacement(self, match_str: str, onset: str) -> str:
+        if self.use_sinoviet_heuristic:
+            match_lower_str = match_str.lower()
+            # non-existent Sino-Vietnamese tokens
+            # Source: https://ling.ussh.vnu.edu.vn/vi/nghien-cuu-khoa-hoc/chuong-trinh-de-tai-du-an/ban-tiep-ve-chuyen-i-ngan-y-dai-605.html
+            if match_lower_str in {'hỳ', 'lỳ', 'lỷ', 'lỹ', 'mỷ', 'mý', 'sỳ', 'sý', 'sỵ', 'tỹ'}:
+                return match_str.translate(self.Y_TO_I_TRANS)
+            # non-existent non-Sino-Vietnamese tokens
+            elif match_lower_str in {'kỉ', 'lỉ', 'mĩ', 'sí'}:
+                return match_str.translate(self.I_TO_Y_TRANS)
+            elif match_lower_str in {'hì', 'lì', 'lỉ', 'lĩ', 'mỉ', 'mí', 'sì', 'sí', 'sị', 'tĩ', 'kỷ', 'lỷ', 'mỹ', 'sý', }:
+                return match_str
+
+        if onset:
+            return match_str.translate(self.trans_tables_router[onset])
+        else:
+            return match_str.translate(self.trans_tables_router['i'])
 
     def replace(self, text: str) -> str:
         return self.regex.sub(lambda match: self._get_normalized_form(match), text)
 
     def __call__(self, text: str) -> str:
         return self.replace(text)
+
 
 _TEXT_NORMALIZE_REPLACE_TRANSLATIONS = str.maketrans(
     '：“”‘’ー  \u200b\ufeff「」【】«»『』《》〖〗〔〕', ':""\'\'-    """"""""""""""')
@@ -461,7 +497,7 @@ def normalize_text(text: str, clean_redudant_spaces=True,
                    strip_punctuation=False,
                    do_normalize_confusables=False,
                    normalize_tone_placement=True):
-    
+
     text = nfc_normalize(text.strip()).translate(
         _TEXT_NORMALIZE_REPLACE_TRANSLATIONS).translate(_TEXT_NORMALIZE_REMOVE_TRANSLATIONS)
     if do_normalize_confusables:
@@ -479,6 +515,7 @@ def normalize_text(text: str, clean_redudant_spaces=True,
 
 
 _CLEAN_SLUG_SPACES_REGEX = re_compile(r'[ -]+')
+
 
 def clean_slug(text: str, sep='_'):
     slug = remove_diacritics(text.lower())
