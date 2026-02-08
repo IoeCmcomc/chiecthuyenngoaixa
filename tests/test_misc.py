@@ -351,5 +351,5 @@ def test_bench_i_y_normalizer_preset_cache(benchmark, preset, num_line):
     normalizer = IYNormalizer.from_preset_style(preset, max_repl_cache_size=190)
     text = make_syllables_benchmark_text(num_line)
     benchmark(normalizer, text)
-    print(normalizer._get_non_exceptional_replacement.cache_info())
-    print(normalizer._get_replacement_maybe_cached.cache_info())
+    # print(normalizer._get_non_exceptional_replacement.cache_info())
+    # print(normalizer._get_replacement_maybe_cached.cache_info())

@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 from typing import Union, Iterable, Set
-import unicodedata
 from abc import ABC, abstractmethod
 from functools import lru_cache
 
-from .constants import TONES, TONE_NAMES, ALL_RIMES
-from .misc import nfc_normalize, separate_tone, is_even_tone
+from .constants import TONES, ALL_RIMES
+from .misc import nfc_normalize, place_tone_to_char, separate_tone, is_even_tone
 
 
 def find_startswith(text: str, candidates: Iterable):
@@ -22,22 +21,8 @@ class TonePlacer(ABC):
     """Controls tone mark placements."""
 
     @staticmethod
-    @lru_cache(maxsize=160)
-    def place_to_char(char, tone) -> str:
-        name = unicodedata.name(char)
-
-        if (tone != '') and (tone in TONES):
-            if 'WITH' in name:
-                name += ' AND '
-            else:
-                name += ' WITH '
-            name += TONE_NAMES[TONES.index(tone)]
-
-        return unicodedata.lookup(name)
-
-    @staticmethod
     def place_to_vowels_at(vowels, tone, position):
-        return vowels[:position] + TonePlacer.place_to_char(vowels[position], tone) + vowels[position+1:]
+        return vowels[:position] + place_tone_to_char(vowels[position], tone) + vowels[position+1:]
 
     @classmethod
     def place(cls, syllable: Syllable, nucleus) -> str:

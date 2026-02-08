@@ -131,3 +131,4 @@ dmypy.json
 # Others
 test.py
 pyindex.txt
+.benchmarks

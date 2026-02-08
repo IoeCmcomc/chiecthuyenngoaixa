@@ -8,8 +8,9 @@ from re import compile as re_compile, escape as re_escape, sub as re_sub, IGNORE
 from typing import Literal, Optional, Iterable, Dict
 from itertools import product
 
-from .constants import TONES, TONE_NAMES, NO_TONE_CHAR_TRANS, CONFUSABLE_CHAR_TRANS, \
-    BASE_TONE_PLACEMENT_REPLACE_PAIRS, NON_WORD_CHARS_REGEX
+from .constants import TONES, TONE_NAMES, NO_TONE_CHAR_TRANS, \
+    BASE_TONE_PLACEMENT_REPLACE_PAIRS, NON_WORD_CHARS_REGEX, \
+    VOWEL_TONE_TO_CHAR, CHAR_TO_TONE_AND_VOWEL
 
 
 def normalize_confusables(text: str) -> str:
@@ -18,6 +19,7 @@ def normalize_confusables(text: str) -> str:
     Replace similar-looking characters and homoglyphs with theirs equivalent
     Vietnamese characters. Small cap letters will be converted to lowercase.
     """
+    from .constants.confusables import CONFUSABLE_CHAR_TRANS
     return text.translate(CONFUSABLE_CHAR_TRANS)
 
 
@@ -46,7 +48,6 @@ def remove_diacritics(text: str) -> str:
     return unicode_normalize('NFKD', text.translate(SPECIAL_TRANS)).encode('ascii', 'ignore').decode()
 
 
-@lru_cache(maxsize=160)
 def sep_tone_from_char(char: str):
     """Extract the tone mark from a character.
 
@@ -69,6 +70,14 @@ def sep_tone_from_char(char: str):
         a tuple of the same character without tone mark and its tone
     """
 
+    try:
+        return CHAR_TO_TONE_AND_VOWEL[char]
+    except KeyError:
+        return _sep_tone_from_char_unicode(char)
+
+
+@lru_cache(maxsize=160)
+def _sep_tone_from_char_unicode(char: str):
     try:
         name = unicode_name(char)
         # print(name)
@@ -96,6 +105,27 @@ def sep_tone_from_char(char: str):
         return (tone, new_char)
     except KeyError:
         raise
+
+
+def place_tone_to_char(char, tone) -> str:
+    try:
+        return VOWEL_TONE_TO_CHAR[char][tone]
+    except KeyError:
+        return _place_tone_to_char_unicode(char, tone)
+
+
+@lru_cache(maxsize=160)
+def _place_tone_to_char_unicode(char, tone):
+    name = unicode_name(char)
+
+    if (tone != '') and (tone in TONES):
+        if 'WITH' in name:
+            name += ' AND '
+        else:
+            name += ' WITH '
+        name += TONE_NAMES[TONES.index(tone)]
+
+    return unicode_lookup(name)
 
 
 def separate_tone(text: str, all=False):
