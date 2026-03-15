@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Union, Iterable, Set
+from typing import Union, Iterable, Set, overload
 from abc import ABC, abstractmethod
 from functools import lru_cache
 
@@ -37,9 +37,10 @@ class TonePlacer(ABC):
 
 class NewStyleTonePlacer(TonePlacer):
     @classmethod
-    def placement_index(cls, syllable: Syllable):
+    def placement_index(cls, syllable: Syllable) -> int:
         nucleus = syllable.nucleus
         nucleus_len = len(nucleus)
+        assert nucleus_len > 0
         if nucleus_len == 1:
             return 0
         elif nucleus_len == 2:
@@ -54,11 +55,13 @@ class NewStyleTonePlacer(TonePlacer):
                 return 1
             else:
                 return 2
+        else:
+            return 2
 
 
 class OldStyleTonePlacer(NewStyleTonePlacer):
     @classmethod
-    def placement_index(cls, syllable: Syllable):
+    def placement_index(cls, syllable: Syllable) -> int:
         if (syllable.nucleus in {'oo', 'ôô'}) or ((syllable.rime in {'oa', 'oe', 'uy'}) and (syllable.onset != 'q')):
             return 0
         else:
@@ -91,15 +94,16 @@ class Syllable:
     OPEN_NUCLEI = OPEN_TRIPHTHONGS + OPEN_DIPHTHONGS
     CLOSED_NUCLEI = OTHER_CLOSED_NUCLEI + CLOSED_TRIPHTHONGS + CLOSED_DIPHTHONGS
     NUCLEI = OTHER_NUCLEI + TRIPHTHONGS + DIPHTHONGS + MONOPHTHONGS
-    NON_LIP_ROUNDABLE_NUCLEI_SET = {'o', 'oo', 'ua', 'uô'}
+    NON_LIP_ROUNDABLE_NUCLEI_SET = {'o', 'oi', 'oo', 'u', 'ua', 'ui', 'uô', 'uôi'}
     QU_NUCLEUS_PREFIX_REPLACEMENTS = {'ua': 'oa', 'uă' : 'oă', 'ue': 'oe'}
     CODAS = ('ch', 'c', 'm', 'ng', 'nh', 'n', 'p', 't', '')
 
-    AUTO_CORRECT: bool = True
 
-    tone_placer = NewStyleTonePlacer
+    def __init__(self, onset: str, nucleus: str, coda: str, tone='',
+                 auto_correct: bool = True, tone_placer = NewStyleTonePlacer):
+        self.auto_correct: bool = auto_correct
+        self.tone_placer: type[TonePlacer] = tone_placer
 
-    def __init__(self, onset: str, nucleus: str, coda: str, tone=''):
         self._onset = onset
         self._nucleus = nucleus
         self._coda = coda
@@ -118,10 +122,20 @@ class Syllable:
     def __bool__(self):
         return True
 
-    def __eq__(self, other: Union[str, Syllable]):
+    @overload
+    def __eq__(self, other: str) -> bool:
+        ...
+    
+    @overload
+    def __eq__(self, other: Syllable) -> bool:
+        ...
+    
+    def __eq__(self, other) -> bool:
         if isinstance(other, str):
             other = Syllable.from_string(other)
-        return self.onset == other.onset and self.i_normalized_nucleus == other.i_normalized_nucleus and self.coda == self.coda and self.tone == other.tone
+        if isinstance(other, Syllable):
+            return self.onset == other.onset and self.i_normalized_nucleus == other.i_normalized_nucleus and self.coda == self.coda and self.tone == other.tone
+        return False
 
     @classmethod
     def _parse_rime(cls, string: str, has_q_onset: bool) -> tuple:
@@ -144,7 +158,7 @@ class Syllable:
 
     @classmethod
     @lru_cache
-    def from_string(cls, string: str) -> Syllable:
+    def from_string(cls, string: str, auto_correct=True, tone_placer=NewStyleTonePlacer) -> Syllable:
         """Create a Syllable object from string."""
 
         string = nfc_normalize(string).lower()
@@ -154,7 +168,9 @@ class Syllable:
         onset = nucleus = coda = tone = ''
 
         if string in {'gịa', 'gỵa'}:
-            return Syllable('gi', 'ia', '', '.')
+            return cls('gi', 'ia', '', '.',
+                            auto_correct=auto_correct,
+                            tone_placer=tone_placer)
 
         string, tone = separate_tone(string)
 
@@ -178,8 +194,9 @@ class Syllable:
             raise Exception(
                 f"Unexpected characters '{rest}' after a syllable (in '{original}'')")
 
-        return cls(onset, nucleus, coda, tone)
-
+        return cls(onset, nucleus, coda, tone, auto_correct=auto_correct,
+                   tone_placer=tone_placer)
+    
     def to_string(self) -> str:
         """Return the written form of the syllable."""
         onset = self.onset
@@ -205,8 +222,11 @@ class Syllable:
             ValueError(f"Invaild coda: {coda}")
         elif tone not in TONES:
             ValueError(f"Invaild tone: '{tone}'")
-
-        if self._nucleus_has_onglide_semivowel(nucleus):
+        
+        if nucleus == 'uô' and coda == 'c':
+            if onset == 'k':
+                onset = 'c'
+        elif self._nucleus_has_onglide_semivowel(nucleus):
             if onset in {'c', 'k'}:
                 onset = 'q'
         elif onset == 'q':
@@ -243,7 +263,7 @@ class Syllable:
 
         rime = self._i_normalize_nucleus(nucleus) + coda
         if rime not in ALL_RIMES:
-            if not self.AUTO_CORRECT:
+            if not self.auto_correct:
                 raise ValueError(f"Invalid rime: {orig_nuclues + orig_coda}")
             if rime in {'iênh', 'yênh'}:
                 coda = 'ng' # iêng/yêng
@@ -254,7 +274,7 @@ class Syllable:
             if rime not in ALL_RIMES:
                 raise ValueError(f"Invalid rime: {orig_nuclues + orig_coda} (after auto-fix: {rime})")
 
-        if not self.AUTO_CORRECT:
+        if not self.auto_correct:
             if onset != orig_onset:
                 raise ValueError(f"Invaild onset consonant: {orig_onset}")
             elif nucleus != orig_nuclues:

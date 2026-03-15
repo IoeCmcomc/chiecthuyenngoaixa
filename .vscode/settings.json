@@ -1,9 +1,16 @@
 {
-    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.typeCheckingMode": "standard",
     "python.testing.pytestArgs": [
         "tests",
         "--log-cli-level=INFO"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "python-envs.pythonProjects": [
+        {
+            "path": ".",
+            "envManager": "ms-python.python:poetry",
+            "packageManager": "ms-python.python:poetry"
+        }
+    ]
 }

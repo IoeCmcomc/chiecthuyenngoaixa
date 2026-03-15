@@ -46,13 +46,23 @@ def test_from_string():
     assert Syllable.from_string('chuyện') == Syllable('ch', 'uyê', 'n', '.')
     
 def test_from_string_AUTO_CORRECT_disabled():
-    Syllable.AUTO_CORRECT = False
-    assert Syllable.from_string('quýnh') == Syllable('q', 'uy', 'nh', '/')
-    assert Syllable.from_string('Huỳnh') == Syllable('h', 'uy', 'nh', '\\')
-    Syllable.AUTO_CORRECT = True
+    from_string = lambda syll: Syllable.from_string(syll, auto_correct=False)
+    assert from_string('quýnh') == Syllable('q', 'uy', 'nh', '/', auto_correct=False)
+    assert from_string('Huỳnh') == Syllable('h', 'uy', 'nh', '\\', auto_correct=False)
+
+def test_invalid_syllable_auto_correct_disabled():
+    with pytest.raises(Exception):
+        Syllable.from_string('iêu', auto_correct=False)
+    with pytest.raises(Exception):
+        Syllable.from_string('iểng', auto_correct=False)
+    with pytest.raises(Exception):
+        Syllable.from_string('coá', auto_correct=False)
+    with pytest.raises(Exception):
+        Syllable.from_string('hot', auto_correct=False)
+    with pytest.raises(Exception):
+        Syllable.from_string('mixi', auto_correct=False)
 
 def test_to_string():
-    assert Syllable.tone_placer == NewStyleTonePlacer
     assert str(Syllable.from_string('quý')) == 'quý'
     assert str(Syllable.from_string('Hóa')) == 'hoá'
     assert str(Syllable.from_string('giếng')) == 'giếng'
@@ -68,20 +78,19 @@ def test_to_string():
     assert str(Syllable.from_string('khuyên')) == 'khuyên'
 
 def test_old_style_tone_placement():
-    Syllable.tone_placer = OldStyleTonePlacer
-    assert str(Syllable.from_string('quả')) == 'quả'
-    assert str(Syllable.from_string('Hoá')) == 'hóa'
-    assert str(Syllable.from_string('giếng')) == 'giếng'
-    assert str(Syllable.from_string('nhẹ')) == 'nhẹ'
-    assert str(Syllable.from_string('gìn')) == 'gìn'
-    assert str(Syllable.from_string('thuế')) == 'thuế'
-    assert str(Syllable.from_string('bôồng')) == 'bồông'
-    assert str(Syllable.from_string('moóc')) == 'móoc'
-    assert str(Syllable.from_string('xoè')) == 'xòe'
-    assert str(Syllable.from_string('huỷ')) == 'hủy'
-    assert str(Syllable.from_string('của')) == 'của'
-    assert str(Syllable.from_string('thuở')) == 'thuở'
-    Syllable.tone_placer = NewStyleTonePlacer
+    from_string = lambda syll: Syllable.from_string(syll, tone_placer=OldStyleTonePlacer)
+    assert str(from_string('quả')) == 'quả'
+    assert str(from_string('Hoá')) == 'hóa'
+    assert str(from_string('giếng')) == 'giếng'
+    assert str(from_string('nhẹ')) == 'nhẹ'
+    assert str(from_string('gìn')) == 'gìn'
+    assert str(from_string('thuế')) == 'thuế'
+    assert str(from_string('bôồng')) == 'bồông'
+    assert str(from_string('moóc')) == 'móoc'
+    assert str(from_string('xoè')) == 'xòe'
+    assert str(from_string('huỷ')) == 'hủy'
+    assert str(from_string('của')) == 'của'
+    assert str(from_string('thuở')) == 'thuở'
 
 @pytest.mark.parametrize("string", to_string_dataset)
 def test_to_string_batch(string):
@@ -6751,6 +6760,10 @@ RECOGNIZED_SYLLABLES = {
 @pytest.mark.parametrize("string", RECOGNIZED_SYLLABLES)
 def test_valid_syllables(string: str):
     assert Syllable.from_string(string)
+
+@pytest.mark.parametrize("string", RECOGNIZED_SYLLABLES)
+def test_valid_syllables_auto_correct_disabled(string: str):
+    assert Syllable.from_string(string, auto_correct=False)
 
 def generate_no_tone_syllables():
     syllables = []
