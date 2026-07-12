@@ -2,7 +2,7 @@
 
 import pytest
 
-from ctnx.syllable import Syllable, NewStyleTonePlacer, OldStyleTonePlacer, ALL_RIMES
+from ctnx.syllable import Syllable, OldStyleTonePlacer, ALL_RIMES
 
 to_string_dataset = "Do bạch kim rất quý sẽ để lắp vô xương".split()
 
@@ -6831,8 +6831,10 @@ def test_rime():
     assert Syllable.from_string('ruồi').rime == 'uôi'
     assert Syllable.from_string('mẹ').rime == 'e'
     assert Syllable.from_string('nghiêng').rime == 'iêng'
-    assert Syllable.from_string('yêu').rime == 'iêu'
+    assert Syllable.from_string('yêu').rime == 'yêu'
+    assert Syllable.from_string('yêu').normalized_rime == 'iêu'
     assert Syllable.from_string('liêm').rime == 'iêm'
+    assert Syllable.from_string('liêm').normalized_rime == 'iêm'
     assert Syllable.from_string('giá').rime == 'a'
     assert Syllable.from_string('ghen').rime == 'en'
     assert Syllable.from_string('quýnh').rime == 'uynh'
@@ -6906,7 +6908,7 @@ TEST_SWAP_RIMES_CASES = [
     ('trải', 'qua', 'ai', 'oa', 'oa', 'ai', 'troả', 'cai'),
     ('thần', 'đằng', 'ân', 'ăng', 'ăng', 'ân', 'thằng', 'đần'),
     ('nấu', 'xói', 'âu', 'oi', 'oi', 'âu', 'nói', 'xấu'),
-    ('chiều', 'ông', 'iêu', 'ông', 'ông', 'iêu', 'chồng', 'yêu'),
+    ('chiều', 'ông', 'iêu', 'ông', 'ông', 'yêu', 'chồng', 'yêu'),
 ]
 
 @pytest.mark.parametrize("case", TEST_SWAP_RIMES_CASES)

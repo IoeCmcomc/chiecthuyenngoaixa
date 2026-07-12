@@ -188,7 +188,7 @@ class DictBasedOnePassStrReplacer:
 
     def _build_trie_regex_str(self, dictionary: dict):
         return self._trie_to_regex_str(self._make_trie(list(dictionary.keys())))
-
+    
     def _wrap_word_boundaries(self, regex_string: str, word_boundary: str):
         if word_boundary == r'\b':
             regex_string = word_boundary + regex_string + word_boundary
@@ -256,6 +256,15 @@ class DictBasedOnePassStrReplacer:
         return self.replace(text)
 
 
+def make_regex_str_from_tokens(tokens: list, use_atomic_group=False,
+                               case_sensitive=True, word_boundary=''):
+    replacer = DictBasedOnePassStrReplacer({}, use_atomic_group=use_atomic_group,
+                                           case_sensitive=case_sensitive,
+                                           word_boundary=word_boundary)
+    regex_str = replacer._trie_to_regex_str(replacer._make_trie(tokens))
+    return replacer._wrap_word_boundaries(regex_str, word_boundary)
+
+
 def generate_tone_placement_replace_mapping(old_to_new=True, includes_rare_casing=False) -> dict:
     def reverse_sent_case(text):
         return text[0].lower() + text[1:].upper()
@@ -318,9 +327,9 @@ class IYNormalizer(DictBasedOnePassStrReplacer):
         "hôi sì", "hàn sì", "sì sụp", "mua sỉ", "ti hí", "ti gôn", "ti-tan",
         "ti toe", "đinh ti", "ti trôn", "ti ti", "ti tỉ", "ti tiện", "tì tì",
         "tì vết", "tì tay", "tù tì", "tí toáy", "tí tách", "tí teo", "tí hon",
-        "tỉ tê", "bạc tỉ", "tị nạnh", "tí ti",
+        "tỉ tê", "bạc tỉ", "tị nạnh", "tí ti", "ki ốt", "si đa",
         # Sino-Vietnamese words
-        "ti tiện", "tự ti",
+        "ti tiện", "tự ti", "tị nạn", "ghen tị", "hồi tị", "tị nạnh", ""
     ]
 
     def __init__(self, use_atomic_group=False,

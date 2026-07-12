@@ -158,7 +158,7 @@ class Syllable:
 
     @classmethod
     @lru_cache
-    def from_string(cls, string: str, auto_correct=True, tone_placer=NewStyleTonePlacer) -> Syllable:
+    def _from_string(cls, string: str, auto_correct=True, tone_placer=NewStyleTonePlacer) -> Syllable:
         """Create a Syllable object from string."""
 
         string = nfc_normalize(string).lower()
@@ -197,6 +197,14 @@ class Syllable:
         return cls(onset, nucleus, coda, tone, auto_correct=auto_correct,
                    tone_placer=tone_placer)
     
+    @classmethod
+    @lru_cache
+    def from_string(cls, string: str, auto_correct=True, tone_placer=NewStyleTonePlacer) -> Syllable:
+        """Create a Syllable object from string.
+This method is cached by default; use `_from_string` for the uncached method instead."""
+
+        return cls._from_string(string, auto_correct, tone_placer)
+
     def to_string(self) -> str:
         """Return the written form of the syllable."""
         onset = self.onset
@@ -371,7 +379,7 @@ class Syllable:
     def rime(self) -> str:
         """The rime of the syllable, which is the combination of the nucleus and the coda."""
 
-        return self.i_normalized_nucleus + self.coda
+        return self.nucleus + self.coda
 
     @rime.setter
     def rime(self, rime: str):
@@ -384,6 +392,12 @@ class Syllable:
 
         self.update(onset=self.onset, nucleus=nucleus,
                     coda=coda, tone=self.tone)
+    
+    @property
+    def normalized_rime(self) -> str:
+        """The rime of the syllable, with i/y-normalized value."""
+
+        return self.i_normalized_nucleus + self.coda
 
     @staticmethod
     def _nucleus_has_onglide_semivowel(nucleus: str) -> bool:
@@ -419,8 +433,8 @@ class Syllable:
         if isinstance(other, str):
             other = Syllable.from_string(other)
 
-        self_rime = self.rime
-        other_rime = other.rime
+        self_rime = self.normalized_rime
+        other_rime = other.normalized_rime
         if self_rime == other_rime:
             return True
 

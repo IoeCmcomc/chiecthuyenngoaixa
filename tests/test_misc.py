@@ -156,13 +156,11 @@ def test_normalize_tone_placement_old_style():
         )
 
 def generate_random_syllables(n=10):
-    Syllable.tone_placer = OldStyleTonePlacer
     string = ' '.join(str(Syllable.from_string(random.choice(Syllable.ONSETS) + random.choice((
         'uế', 'uề', 'uể', 'uễ', 'uệ',
         'óa', 'òa', 'ỏa', 'ủy', 'ũy', 'ụy', 'òe', 'ỏe', 'õe', 'ủa',
-        'oả', 'oạ', 'uý', 'uỳ', 'oẽ', 'oẹ'))))
+        'oả', 'oạ', 'uý', 'uỳ', 'oẽ', 'oẹ')), tone_placer=OldStyleTonePlacer))
         + random.choice(('', '', '', '', '', ',', '.', ';', '?', ':')) for _ in range(n))
-    Syllable.tone_placer = NewStyleTonePlacer
     return string
 
 @pytest.fixture
