@@ -13,6 +13,11 @@ from .constants import TONES, TONE_NAMES, NO_TONE_CHAR_TRANS, \
     VOWEL_TONE_TO_CHAR, CHAR_TO_TONE_AND_VOWEL
 
 
+def nfc_normalize(text: str) -> str:
+    """Converts combining Unicode characters to theirs equivalent precomposed characters."""
+    return unicode_normalize('NFC', text)
+
+
 def normalize_confusables(text: str) -> str:
     """Converts a confusable text to a potentially normal text.
 
@@ -20,12 +25,7 @@ def normalize_confusables(text: str) -> str:
     Vietnamese characters. Small cap letters will be converted to lowercase.
     """
     from .constants.confusables import CONFUSABLE_CHAR_TRANS
-    return text.translate(CONFUSABLE_CHAR_TRANS)
-
-
-def nfc_normalize(text: str) -> str:
-    """Converts combining Unicode characters to theirs equivalent precomposed characters."""
-    return unicode_normalize('NFC', text)
+    return nfc_normalize(text.translate(CONFUSABLE_CHAR_TRANS))
 
 
 def remove_tones(text: str) -> str:
@@ -329,7 +329,7 @@ class IYNormalizer(DictBasedOnePassStrReplacer):
         "tì vết", "tì tay", "tù tì", "tí toáy", "tí tách", "tí teo", "tí hon",
         "tỉ tê", "bạc tỉ", "tị nạnh", "tí ti", "ki ốt", "si đa",
         # Sino-Vietnamese words
-        "ti tiện", "tự ti", "tị nạn", "ghen tị", "hồi tị", "tị nạnh", ""
+        "ti tiện", "tự ti", "tị nạn", "ghen tị", "hồi tị", "tị nạnh",
     ]
 
     def __init__(self, use_atomic_group=False,
@@ -550,7 +550,7 @@ def normalize_text(text: str, clean_redudant_spaces=True,
     text = re_sub(r'\.{4,}|…', '...', text)
     if normalize_tone_placement:
         text = normalize_tone_placement_new_style(text)
-    return text
+    return text.strip()
 
 
 _CLEAN_SLUG_SPACES_REGEX = re_compile(r'[ -]+')
