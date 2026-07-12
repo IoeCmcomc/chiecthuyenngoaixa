@@ -5,9 +5,9 @@ from decimal import Decimal, InvalidOperation
 
 
 def num_to_words(n: Union[int, float, AnyStr, Decimal]) -> str:
-    """Convert a number to Vietnamese words.
+    """Converts a number to Vietnamese words.
 
-    Convert a number to its Vietnamese formal spoken form. It supports
+    Converts a number to its Vietnamese formal spoken form. Supports
     long numbers (both integers and decimals).
 
     Parameters
@@ -34,7 +34,7 @@ def num_to_words(n: Union[int, float, AnyStr, Decimal]) -> str:
     levels = ('đơn vị', 'nghìn', 'triệu')
 
     def partition(string: str, n: int) -> Generator:
-        """Split a string from right to left to chunks of size n"""
+        """Splits a string from right to left into chunks of size n."""
         length = len(string)
         mod = length % n
         

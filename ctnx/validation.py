@@ -476,7 +476,7 @@ COUNTRY_NAME_DICT = {
 
 
 class CccdResult(NamedTuple):
-    """Contain information of a parsed Vietnamese Citizen Identity Card
+    """Contains information of a parsed Vietnamese Citizen Identity Card
     (Căn cước công dân) number."""
     id: str
     is_male: bool
@@ -486,7 +486,7 @@ class CccdResult(NamedTuple):
 
 
 def parse_cccd(raw: Union[int, str]) -> CccdResult:
-    """Extract information from a Vietnamese Citizen Identity Card
+    """Extracts information from a Vietnamese Citizen Identity Card
     (Căn cước công dân) number.
     
     Parameters
@@ -497,8 +497,8 @@ def parse_cccd(raw: Union[int, str]) -> CccdResult:
     Returns
     -------
     CccdResult
-        A named tuple contains the extracted information, consist of
-        gender, date of birth, register place and the incremental ID
+        A named tuple containing the extracted information, consisting of
+        gender, date of birth, registration place, and the unique sequential ID
 
     Raises
     ------
@@ -536,8 +536,8 @@ def parse_cccd(raw: Union[int, str]) -> CccdResult:
 
 
 def is_valid_cccd(raw: Union[int, str]) -> bool:
-    """Check whether a Vietnamese Citizen Identity Card
-    (Căn cước công dân) number is vaild or not.
+    """Checks whether a Vietnamese Citizen Identity Card
+    (Căn cước công dân) number is valid or not.
     
     Parameters
     ----------
@@ -547,7 +547,7 @@ def is_valid_cccd(raw: Union[int, str]) -> bool:
     Returns
     -------
     bool
-        Whether the ID is vaild or not
+        Whether the ID is valid or not
     """
 
     try:

@@ -6,12 +6,12 @@ from typing import List, Iterable
 from .constants import ALPHABET, DEFAULT_TONE_ORDER, VOWEL_TONE_TO_CHAR
 
 class ViCollator:
-    """Vietnamese-aware class for generating sorting key for use with the `key` parameter
-    in  :py:func:`sorted` and  :py:meth:`list.sort` functions.
+    """Vietnamese-aware class for generating a sorting key for use with the `key` parameter
+    in :py:func:`sorted` and :py:meth:`list.sort` functions.
 
-    To get the default collator key, use `syllable.default_vi_collator`
+    To get the default collator key, use :py:data:`ctnx.vi_sort_key`
 
-    :param tone_order: A sequence of tone marks defining the sort order for vowels. 
+    :param tone_order: A sequence of tone marks defining the sort order for vowels.
                        Defaults to ``('', '/', '\\', '?', '~', '.')``.
     :type tone_order: Iterable
     """

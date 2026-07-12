@@ -18,7 +18,7 @@ def find_startswith(text: str, candidates: Iterable):
 
 
 class TonePlacer(ABC):
-    """Controls tone mark placements."""
+    """Controls tone mark placement on Vietnamese vowels."""
 
     @staticmethod
     def place_to_vowels_at(vowels, tone, position):
@@ -36,6 +36,7 @@ class TonePlacer(ABC):
 
 
 class NewStyleTonePlacer(TonePlacer):
+    """Places tone marks according to the new style of Vietnamese spelling (e.g., 'oà', 'uý')."""
     @classmethod
     def placement_index(cls, syllable: Syllable) -> int:
         nucleus = syllable.nucleus
@@ -60,6 +61,7 @@ class NewStyleTonePlacer(TonePlacer):
 
 
 class OldStyleTonePlacer(NewStyleTonePlacer):
+    """Places tone marks according to the old style of Vietnamese spelling (e.g., 'òa', 'úy')."""
     @classmethod
     def placement_index(cls, syllable: Syllable) -> int:
         if (syllable.nucleus in {'oo', 'ôô'}) or ((syllable.rime in {'oa', 'oe', 'uy'}) and (syllable.onset != 'q')):
@@ -69,7 +71,7 @@ class OldStyleTonePlacer(NewStyleTonePlacer):
 
 
 class Syllable:
-    """Represent a syllable in Vietnamese language."""
+    """Represents a syllable in the Vietnamese language."""
 
     ONSETS = ('b', 'ch', 'c', 'd', 'đ', 'gh', 'gi', 'g', 'h', 'kh', 'k', 'l', 'm', 'ngh', 'ng', 'nh', 'ng',
               'n', 'ph', 'p', 'q', 'r', 's', 'th', 'tr', 't', 'v', 'x', '')
@@ -159,7 +161,7 @@ class Syllable:
     @classmethod
     @lru_cache
     def _from_string(cls, string: str, auto_correct=True, tone_placer=NewStyleTonePlacer) -> Syllable:
-        """Create a Syllable object from string."""
+        """Creates a Syllable object from a string."""
 
         string = nfc_normalize(string).lower()
         if ' ' in string:
@@ -188,7 +190,7 @@ class Syllable:
             if onset == 'gi':
                 nucleus = 'i'
             else:
-                raise Exception(f"Invaild syllable: {original}")
+                raise Exception(f"Invalid syllable: {original}")
 
         if rest != '':
             raise Exception(
@@ -200,13 +202,16 @@ class Syllable:
     @classmethod
     @lru_cache
     def from_string(cls, string: str, auto_correct=True, tone_placer=NewStyleTonePlacer) -> Syllable:
-        """Create a Syllable object from string.
-This method is cached by default; use `_from_string` for the uncached method instead."""
+        """Creates a Syllable object from a string.
+
+        This method is cached by default. Use :py:meth:`_from_string` for the
+        uncached version.
+        """
 
         return cls._from_string(string, auto_correct, tone_placer)
 
     def to_string(self) -> str:
-        """Return the written form of the syllable."""
+        """Returns the written form of the syllable."""
         onset = self.onset
         nucleus = self.nucleus
         coda = self.coda
@@ -223,13 +228,13 @@ This method is cached by default; use `_from_string` for the uncached method ins
         onset, nucleus, coda = onset.lower(), nucleus.lower(), coda.lower()
         orig_onset, orig_nuclues, orig_coda, orig_tone = onset, nucleus, coda, tone
         if nucleus not in self.NUCLEI:
-            ValueError(f"Invaild nucleus: {nucleus}")
+            ValueError(f"Invalid nucleus: {nucleus}")
         elif onset not in self.ONSETS:
-            ValueError(f"Invaild onset: {onset}")
+            ValueError(f"Invalid onset: {onset}")
         elif coda not in self.CODAS:
-            ValueError(f"Invaild coda: {coda}")
+            ValueError(f"Invalid coda: {coda}")
         elif tone not in TONES:
-            ValueError(f"Invaild tone: '{tone}'")
+            ValueError(f"Invalid tone: '{tone}'")
         
         if nucleus == 'uô' and coda == 'c':
             if onset == 'k':
@@ -284,13 +289,13 @@ This method is cached by default; use `_from_string` for the uncached method ins
 
         if not self.auto_correct:
             if onset != orig_onset:
-                raise ValueError(f"Invaild onset consonant: {orig_onset}")
+                raise ValueError(f"Invalid onset consonant: {orig_onset}")
             elif nucleus != orig_nuclues:
-                raise ValueError(f"Invaild nucleus: {orig_nuclues}")
+                raise ValueError(f"Invalid nucleus: {orig_nuclues}")
             elif coda != orig_coda:
-                raise ValueError(f"Invaild coda: {orig_coda}")
+                raise ValueError(f"Invalid coda: {orig_coda}")
             elif tone != orig_tone:
-                raise ValueError(f"Invaild tone: {orig_tone}")
+                raise ValueError(f"Invalid tone: {orig_tone}")
 
         self._onset = onset
         self._nucleus = nucleus
@@ -331,7 +336,7 @@ This method is cached by default; use `_from_string` for the uncached method ins
     def tone(self) -> str:
         """The tone of the syllable.
 
-        The returned tone is denoted as the following:
+        The returned tone is denoted as one of the following:
         '': unmarked (ngang)
         '/': acute accent (sắc)
         '\\': grave accent (huyền)
@@ -364,6 +369,7 @@ This method is cached by default; use `_from_string` for the uncached method ins
 
     @property
     def normalized_nucleus(self) -> str:
+        """The normalized vowel part of the syllable, resolving spelling variants like 'iê' to 'ia' when there is no coda."""
         nucleus = self.i_normalized_nucleus
         if self.coda == '':
             if nucleus == 'iê':
@@ -405,17 +411,17 @@ This method is cached by default; use `_from_string` for the uncached method ins
 
     @property
     def has_onglide_semivowel(self) -> bool:
-        """Check whether the syllable has a on-glide semivowel, as presented in 'qua' and 'xoa', or not."""
+        """Checks whether the syllable has an on-glide semivowel, as present in 'qua' and 'xoa'."""
         return self._nucleus_has_onglide_semivowel(self.nucleus)
 
     @property
     def has_even_tone(self) -> bool:
-        """Check whether the syllable's tone is even (not oblique) or not."""
+        """Checks whether the syllable's tone is even (not oblique)."""
         return is_even_tone(self.tone)
 
     @property
     def has_oblique_tone(self) -> bool:
-        """Check whether the syllable's tone is oblique (uneven) or not."""
+        """Checks whether the syllable's tone is oblique (uneven)."""
         return not self.has_even_tone
 
     @staticmethod
@@ -426,8 +432,8 @@ This method is cached by default; use `_from_string` for the uncached method ins
         return False
 
     def is_rhyme_with(self, other: Union[Syllable, str]) -> bool:
-        """Check whether a syllable rhymes with another syllable or not. Beside exact rime matching,
-        this method uses pre-defined rules for detecting similar rimes.
+        """Checks whether the syllable rhymes with another syllable. Besides exact rime matching,
+        this method uses predefined rules for detecting similar rimes.
 
         Similar-rime rules are based on https://bentinhyeu.forumvi.com/t10-topic and https://hoaanhdao0603082010.violet.vn/entry/van-trong-tho-12076153.html ."""
         if isinstance(other, str):
@@ -479,7 +485,8 @@ This method is cached by default; use `_from_string` for the uncached method ins
             return False
 
     @property
-    def can_apply_onglide_semivowel(self):
+    def can_apply_onglide_semivowel(self) -> bool:
+        """Checks whether an on-glide semivowel can be applied to the syllable's nucleus."""
         return self.i_normalized_nucleus[0] in {'a', 'ă', 'â', 'e', 'ê', 'i', 'ơ', 'y'}
 
     @staticmethod
@@ -493,6 +500,7 @@ This method is cached by default; use `_from_string` for the uncached method ins
         return nucleus
 
     def apply_onglide_semivowel(self) -> bool:
+        """Applies an on-glide semivowel to the syllable, modifying the nucleus (and onset if necessary)."""
         if not self.can_apply_onglide_semivowel:
             return False
 

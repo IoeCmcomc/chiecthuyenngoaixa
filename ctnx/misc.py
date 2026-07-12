@@ -14,33 +14,33 @@ from .constants import TONES, TONE_NAMES, NO_TONE_CHAR_TRANS, \
 
 
 def nfc_normalize(text: str) -> str:
-    """Converts combining Unicode characters to theirs equivalent precomposed characters."""
+    """Converts combining Unicode characters to their equivalent precomposed characters."""
     return unicode_normalize('NFC', text)
 
 
 def normalize_confusables(text: str) -> str:
-    """Converts a confusable text to a potentially normal text.
+    """Converts a confusable text to a normal text.
 
-    Replace similar-looking characters and homoglyphs with theirs equivalent
-    Vietnamese characters. Small cap letters will be converted to lowercase.
+    Replaces similar-looking characters and homoglyphs with their equivalent
+    Vietnamese characters. Small cap letters are converted to lowercase.
     """
     from .constants.confusables import CONFUSABLE_CHAR_TRANS
     return nfc_normalize(text.translate(CONFUSABLE_CHAR_TRANS))
 
 
 def remove_tones(text: str) -> str:
-    """Remove tone marks from text.
+    """Removes tone marks from text.
 
-    Replace characters with tone marks with theirs equivalent non-toned
-    characters. Other diacritics will be kept.
+    Replaces characters with tone marks with their equivalent non-toned
+    characters. Other diacritics are kept.
     """
     return text.translate(NO_TONE_CHAR_TRANS)
 
 
 def remove_diacritics(text: str) -> str:
-    """Remove all diacritics from text.
+    """Removes all diacritics from text.
 
-    Replace characters with diacritics with theirs equivalent ASCII
+    Replaces characters with diacritics with their equivalent ASCII
     characters.
     """
 
@@ -49,9 +49,9 @@ def remove_diacritics(text: str) -> str:
 
 
 def sep_tone_from_char(char: str):
-    """Extract the tone mark from a character.
+    """Extracts the tone mark from a character.
 
-    The returned tone is denoted as the following:
+    The returned tone is denoted as one of the following:
     '': unmarked (ngang)
     '/': acute accent (sắc)
     '\\': grave accent (huyền)
@@ -67,7 +67,7 @@ def sep_tone_from_char(char: str):
     Returns
     -------
     tuple
-        a tuple of the same character without tone mark and its tone
+        A tuple of the same character without the tone mark, and the tone mark itself
     """
 
     try:
@@ -129,9 +129,9 @@ def _place_tone_to_char_unicode(char, tone):
 
 
 def separate_tone(text: str, all=False):
-    """Extract the tone mark from text.
+    """Extracts the tone mark from text.
 
-    The returned tone is denoted as the following:
+    The returned tone is denoted as one of the following:
     '': unmarked (ngang)
     '/': acute accent (sắc)
     '\\': grave accent (huyền)
@@ -141,16 +141,15 @@ def separate_tone(text: str, all=False):
 
     Parameters
     ----------
-    char : str
+    text : str
         The text from which the tone will be extracted
     all : bool, default : False
-        If set to True, the last tone will be returned instead of the
-        first one
+        If set to True, extracts the last tone instead of the first one
 
     Returns
     -------
     tuple
-        a tuple of the text without tone marks and its tone
+        A tuple of the text without tone marks, and the extracted tone mark
     """
 
     text = nfc_normalize(text)
@@ -170,10 +169,14 @@ def separate_tone(text: str, all=False):
 
 
 def is_even_tone(tone: str) -> bool:
+    """Checks whether the given tone mark represents an even tone (ngang/unmarked or huyền/grave accent)."""
     return tone in {'', '\\'}
 
 
 class DictBasedOnePassStrReplacer:
+    """A helper class that compiles a dictionary of substring replacements into a single
+    trie-based regular expression for efficient, one-pass string replacements.
+    """
     def __init__(self, dictionary: dict, use_atomic_group=False, case_sensitive=True, word_boundary='') -> None:
         self.use_atomic_group = use_atomic_group
         self.case_sensitive = case_sensitive
@@ -258,6 +261,7 @@ class DictBasedOnePassStrReplacer:
 
 def make_regex_str_from_tokens(tokens: list, use_atomic_group=False,
                                case_sensitive=True, word_boundary=''):
+    """Generates a trie-based regular expression string from a list of tokens."""
     replacer = DictBasedOnePassStrReplacer({}, use_atomic_group=use_atomic_group,
                                            case_sensitive=case_sensitive,
                                            word_boundary=word_boundary)
@@ -266,6 +270,9 @@ def make_regex_str_from_tokens(tokens: list, use_atomic_group=False,
 
 
 def generate_tone_placement_replace_mapping(old_to_new=True, includes_rare_casing=False) -> dict:
+    """Generates a mapping dictionary for replacing Vietnamese tone placements between
+    old and new styles (or vice versa).
+    """
     def reverse_sent_case(text):
         return text[0].lower() + text[1:].upper()
 
@@ -291,6 +298,9 @@ normalize_tone_placement_old_style = DictBasedOnePassStrReplacer(
 
 
 class IYNormalizer(DictBasedOnePassStrReplacer):
+    """String replacer for normalizing the placement of 'i' and 'y' in
+    Vietnamese syllables, following configurable preset styles and exception lists.
+    """
     ONSETS = ['qu', 'h', 'k', 'l', 'm', 's', 't', 'v',]
 
     LOWER_I_VARIANTS = 'iìíỉĩị'
@@ -536,6 +546,11 @@ def normalize_text(text: str, clean_redudant_spaces=True,
                    strip_punctuation=False,
                    do_normalize_confusables=False,
                    normalize_tone_placement=True):
+    """Cleans and normalizes Vietnamese text.
+
+    Supports NFC normalization, removing redundant spaces, stripping punctuation,
+    converting confusable characters, and normalizing tone placement.
+    """
 
     text = nfc_normalize(text.strip()).translate(
         _TEXT_NORMALIZE_REPLACE_TRANSLATIONS).translate(_TEXT_NORMALIZE_REMOVE_TRANSLATIONS)
@@ -557,6 +572,9 @@ _CLEAN_SLUG_SPACES_REGEX = re_compile(r'[ -]+')
 
 
 def clean_slug(text: str, sep='_'):
+    """Generates an ASCII-only slug (URL-friendly string) from a Vietnamese text,
+    replacing spaces and non-word characters with a separator.
+    """
     slug = remove_diacritics(text.lower())
     slug = NON_WORD_CHARS_REGEX.sub('', slug)
     return _CLEAN_SLUG_SPACES_REGEX.sub(sep, slug)
