@@ -114,7 +114,7 @@ Other normalization functions live in the :py:mod:`ctnx.misc` module.
         >>> normalize_tone_placement_old_style(text)
         'mũi thuyền in một nét lòe nhòe vào bầu sương mù'
 
-* To normalize i/y characters in tokens like "hi, ki, li, mi, quy, sy, ti, vi":
+* To normalize i/y characters in tokens like "hi, ki, li, mi, quy, si, ty, vi":
 
     .. doctest::
         :pyversion: >= 3.8
