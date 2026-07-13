@@ -4,7 +4,7 @@
 [![GitHub license](https://img.shields.io/github/license/IoeCmcomc/chiecthuyenngoaixa)](https://github.com/IoeCmcomc/chiecthuyenngoaixa/blob/master/LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/chiecthuyenngoaixa/badge/?version=latest)](https://chiecthuyenngoaixa.readthedocs.io/en/latest/?badge=latest)
 ![PyPI](https://img.shields.io/pypi/v/chiecthuyenngoaixa)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/chiecthuyenngoaixa)
+[![PyPI Downloads](https://static.pepy.tech/personalized-badge/chiecthuyenngoaixa?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/chiecthuyenngoaixa)
 
 [English](README.md "English version")
 
